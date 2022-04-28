@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+
+
+    <changeSet author="jaspervdb (generated)" id="gen-0">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="METER"/>
+			</not>
+		</preConditions>
+        <createTable tableName="METER">
+            <column name="METER_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="REF" type="VARCHAR(250)"/>
+            <column name="STATE" type="VARCHAR(20)"/>
+            <column name="VENDOR_ID" type="VARCHAR(50)"/>
+            <column name="SERIAL_N" type="VARCHAR(20)"/>
+            <column name="METER_N" type="VARCHAR(20)"/>
+            <column name="FIRMWARE" type="VARCHAR(20)"/>
+            <column name="CONFIG_UPDATED" type="TIMESTAMP"/>
+            <column name="TYPE_DESC" type="VARCHAR(250)"/>
+            <column name="CONSUMPTION_TYPE" type="VARCHAR(50)"/>
+            <column name="PROFILE_REF" type="VARCHAR(250)"/>
+            <column name="ROUTES_REF" type="VARCHAR(250)"/>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet author="jaspervdb (generated)" id="gen-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="METER_REGISTER"/>
+            </not>
+        </preConditions>
+        <createTable tableName="METER_REGISTER">
+            <column name="METER_REGISTER_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="METER_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ID" type="VARCHAR(250)"/>
+            <column name="NAME" type="VARCHAR(100)"/>
+            <column name="COMMAND" type="VARCHAR(50)"/>
+            <column name="ACTIONS" type="VARCHAR(20)"/>
+            <column name="AUTO_COLLECT" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="jaspervdb (generated)" id="gen-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="METER_REGISTER"/>
+            </not>
+        </preConditions>
+        <createTable tableName="METER_REGISTER">
+            <column name="METER_REGISTER_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="METER_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ID" type="VARCHAR(250)"/>
+            <column name="NAME" type="VARCHAR(100)"/>
+            <column name="COMMAND" type="VARCHAR(50)"/>
+            <column name="ACTIONS" type="VARCHAR(20)"/>
+            <column name="AUTO_COLLECT" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="jaspervdb" id="gen-2">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <primaryKeyExists primaryKeyName="METER_PK" tableName="METER"/>
+            </not>
+        </preConditions>
+        <addPrimaryKey columnNames="METER_ID" constraintName="METER_PK" tableName="METER"/>
+    </changeSet>
+
+    <changeSet author="jaspervdb" id="gen-3">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <primaryKeyExists primaryKeyName="METER_REGISTER_PK" tableName="METER_REGISTER"/>
+            </not>
+        </preConditions>
+        <addPrimaryKey columnNames="METER_REGISTER_ID" constraintName="METER_REGISTER_PK" tableName="METER_REGISTER"/>
+    </changeSet>
+
+    <changeSet author="jaspervdb" id="gen-4">
+        <addForeignKeyConstraint baseColumnNames="METER_ID"
+                                 baseTableName="METER_REGISTER"
+                                 constraintName="FK_REGISTER_METER"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="METER_ID"
+                                 referencedTableName="METER"/>
+    </changeSet>
+
+
+    <changeSet author="jaspervdb" id="gen-5">
+        <createIndex indexName="IDX_SERIAL_N"
+                     tableName="METER"
+                     unique="true">
+            <column name="SERIAL_N" type="varchar(20)"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Orders -->
+
+    <changeSet author="jaspervdb (generated)" id="gen-6">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="METER_ORDER"/>
+            </not>
+        </preConditions>
+        <createTable tableName="METER_ORDER">
+            <column name="METER_ORDER_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="REF" type="VARCHAR(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="STATUS_REF" type="VARCHAR(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="COMPLETED_REF" type="VARCHAR(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CREATED" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="STATUS" type="SMALLINT"/>
+            <column name="SUCCEEDED" type="INTEGER"/>
+            <column name="FAILED" type="INTEGER"/>
+            <column name="ABORTED" type="INTEGER"/>
+            <column name="WAITING" type="INTEGER"/>
+            <column name="ERROR" type="VARCHAR(4000)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="jaspervdb" id="gen-7">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <primaryKeyExists primaryKeyName="METER_ORDER_PK" tableName="METER_ORDER"/>
+            </not>
+        </preConditions>
+        <addPrimaryKey columnNames="METER_ORDER_ID" constraintName="METER_ORDER_PK" tableName="METER_ORDER"/>
+    </changeSet>
+
+
+    <changeSet author="jaspervdb" id="gen-8">
+        <createIndex indexName="IDX_ORDER_REF"
+                     tableName="METER_ORDER">
+            <column name="REF" type="VARCHAR(250)"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="jaspervdb" id="gen-9">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="METER_READING"/>
+            </not>
+        </preConditions>
+        <createTable tableName="METER_READING">
+            <column name="METER_READING_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="METER_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="METER_ORDER_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LOGGER_ID" type="VARCHAR(20)"/>
+            <column name="LOG_ID" type="VARCHAR(20)"/>
+            <column name="REGISTER_ID" type="VARCHAR(20)"/>
+            <column name="UNIT" type="VARCHAR(20)"/>
+            <column name="SCALE" type="SMALLINT"/>
+            <column name="VALUE" type="DOUBLE"/>
+            <column name="ENTRY_TIME" type="TIMESTAMP"/>
+
+        </createTable>
+    </changeSet>
+
+    <changeSet author="jaspervdb" id="gen-10">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <primaryKeyExists primaryKeyName="METER_READING_PK" tableName="METER_READING"/>
+            </not>
+        </preConditions>
+        <addPrimaryKey columnNames="METER_READING_ID" constraintName="METER_READING_PK" tableName="METER_READING"/>
+    </changeSet>
+
+
+    <changeSet author="jaspervdb" id="gen-11">
+        <addForeignKeyConstraint baseColumnNames="METER_ID"
+                                 baseTableName="METER_READING"
+                                 constraintName="FK_METER_READING_METER"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="METER_ID"
+                                 referencedTableName="METER"/>
+    </changeSet>
+
+    <changeSet author="jaspervdb" id="gen-12">
+        <addForeignKeyConstraint baseColumnNames="METER_ORDER_ID"
+                                 baseTableName="METER_READING"
+                                 constraintName="FK_METER_READING_ORDER"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="METER_ORDER_ID"
+                                 referencedTableName="METER_ORDER"/>
+    </changeSet>
+
+    <changeSet author="jaspervdb" id="gen-13">
+        <createIndex indexName="IDX_METER_READING"
+                     tableName="METER_READING"
+                     unique="true">
+            <column name="LOGGER_ID" type="VARCHAR(20)"/>
+            <column name="LOG_ID" type="VARCHAR(20)"/>
+            <column name="REGISTER_ID" type="VARCHAR(20)"/>
+        </createIndex>
+    </changeSet>
+
+
+</databaseChangeLog>

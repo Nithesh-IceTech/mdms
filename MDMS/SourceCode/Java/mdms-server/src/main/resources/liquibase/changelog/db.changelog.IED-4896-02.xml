@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+
+    <property name="uuid_type" value="uuid" dbms="postgresql"/>
+    <property name="uuid_function" value="uuid_generate_v4()" dbms="postgresql"/>
+    <property name="timestamp_type" value="TIMESTAMP" dbms="postgresql"/>
+    <property name="timestamp_function" value="CURRENT_TIMESTAMP" dbms="postgresql"/>
+
+    <changeSet author="arnoc" id="IED-4896-02" failOnError="true" dbms="postgresql">
+
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck  expectedResult="0">
+                select count(*) from mdms_settings
+            </sqlCheck>
+        </preConditions>
+
+        <comment>Insert MDMS Default Properties</comment>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="mdms.global.timezone.offset"/>
+            <column  name="property_value"    value="120"/>
+            <column  name="property_type"     value="integer"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="prepaid.batch.processing.enabled"/>
+            <column  name="property_value"    value="false"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="utility.prepaid.push.enabled"/>
+            <column  name="property_value"    value="false"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="prepaid.batch.processing.interval"/>
+            <column  name="property_value"    value="2"/>
+            <column  name="property_type"     value="integer"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="prepaid.batch.latest.reading.only"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="prepaid.batch.30min.meter.filter"/>
+            <column  name="property_value"    value="20529319,20529328,30829119,ELON115295"/>
+            <column  name="property_type"     value="list"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="prepaid.batch.processing.backlog.time.window"/>
+            <column  name="property_value"    value="7"/>
+            <column  name="property_type"     value="integer"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="kamstrup.processing.enabled"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="kamstrup.gap.processing.enabled"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="kamstrup.gap.processing.batch.size"/>
+            <column  name="property_value"    value="300"/>
+            <column  name="property_type"     value="integer"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="kamstrup.gap.processing.debug.enabled"/>
+            <column  name="property_value"    value="false"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="kamstrup.autocollection.enabled"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="kamstrup.autocollection.filtered.meters.enabled"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="kamstrup.broker.processing.enabled"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="kamstrup.broker.filter.meters"/>
+            <column  name="property_value"    value="20529319"/>
+            <column  name="property_type"     value="list"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="nes.processing.enabled"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="nes.processing.batch.size"/>
+            <column  name="property_value"    value="5000"/>
+            <column  name="property_type"     value="integer"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="nes.broker.processing.enabled"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="nes.broker.filter.meters"/>
+            <column  name="property_value"    value="ELON087416"/>
+            <column  name="property_type"     value="list"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="generic.meter.processing.enabled"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="generic.broker.processing.enabled"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="generic.broker.filter.meters"/>
+            <column  name="property_value"    value="ELS3514885011459,SEN72780614,SEN72780625"/>
+            <column  name="property_type"     value="list"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="elster.processing.enabled"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="meter.reading.gap.processor.enabled"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="meter.reading.gap.processor.batch.size"/>
+            <column  name="property_value"    value="100"/>
+            <column  name="property_type"     value="integer"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="meter.reading.gap.processor.debug.enabled"/>
+            <column  name="property_value"    value="false"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="generator.service.enabled"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="winsms.service.enabled"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="filtered_meters"/>
+            <column  name="property_value"    value="20529319,30829119,ELON079468,ELON087416,ELON059938"/>
+            <column  name="property_type"     value="list"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="imageExportProcessorEnabled"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="importProcessorEnabled"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+        <insert tableName="mdms_settings">
+            <column  name="property_id"       valueComputed="${uuid_function}" type="${uuid_type}"/>
+            <column  name="app_instance"      value="1"/>
+            <column  name="property_key"      value="email.offline.devices"/>
+            <column  name="property_value"    value="true"/>
+            <column  name="property_type"     value="boolean"/>
+            <column  name="last_change_time"  valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+            <column  name="create_time"       valueComputed="${timestamp_function}" type="${timestamp_type}"/>
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>

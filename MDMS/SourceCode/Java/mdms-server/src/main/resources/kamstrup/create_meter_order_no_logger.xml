@@ -1,0 +1,12 @@
+<Order priority='Normal'>
+    <Commands>
+        <RegisterCommand action="read">
+            _REGISTER_
+        </RegisterCommand>
+    </Commands>
+    <Subjects>
+        <Meters>
+            _METERS_
+        </Meters>
+    </Subjects>
+</Order>

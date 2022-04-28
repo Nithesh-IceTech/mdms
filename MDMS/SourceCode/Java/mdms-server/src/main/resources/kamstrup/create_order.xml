@@ -1,0 +1,16 @@
+<Order priority='Normal'>
+    <Commands>
+        <LoggerCommand action="read">
+            <Logger id="_LOG_ID_">
+                <Registers>
+                    _REGISTER_
+                </Registers>
+                <FromDate>_FROM_DATE_</FromDate>
+                <ToDate>_TO_DATE_</ToDate>
+            </Logger>
+        </LoggerCommand>
+    </Commands>
+    <Subjects>
+        <Group ref='_GROUP_REF_'/>
+    </Subjects>
+</Order>

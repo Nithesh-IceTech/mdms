@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+
+    <changeSet author="jaspervdb" runOnChange="true" id="IFS-1544-01" failOnError="true" dbms="oracle">
+        <comment>Populate new link structure</comment>
+        <sql endDelimiter="/">
+            insert into METER_READING_LIST_LINK (id,UTILITY_METER_READING_LIST_ID,METER_READING_LIST_ID)
+            select SYS_GUID(),UTILITY_METER_READING_LIST_ID,METER_READING_LIST_ID from PEC_UTILITY_METER_READING_LIST where METER_READING_LIST_ID is not null
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

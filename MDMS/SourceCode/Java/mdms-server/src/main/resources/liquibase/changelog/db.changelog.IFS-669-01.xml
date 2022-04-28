@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+
+    <changeSet author="johans" id="IFS-669-001">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="BROKER_COMMAND"/>
+            </not>
+        </preConditions>
+        <createTable tableName="BROKER_COMMAND">
+            <column name="BROKER_COMMAND_ID" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="METER_ID"  type="VARCHAR(250)"/>
+            <column name="COMMAND" type="SMALLINT"/>
+            <column name="STATUS" type="SMALLINT"/>
+            <column name="CREATED_DATE" type="TIMESTAMP"/>
+            <column name="STATUS_UPDATE_DATE" type="TIMESTAMP"/>
+            <column name="ORDER_URL" type="VARCHAR(250)"/>
+            <column name="ORDER_STATUS_URL" type="VARCHAR(250)"/>
+            <column name="ORDER_COMPLETED_URL" type="VARCHAR(250)"/>
+        </createTable>
+        <addPrimaryKey columnNames="BROKER_COMMAND_ID" constraintName="BROKER_COMMAND_PK" tableName="BROKER_COMMAND"/>
+    </changeSet>
+
+</databaseChangeLog>
+

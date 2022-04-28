@@ -1,0 +1,7 @@
+@import "toolkit";
+@import "addons.scss";
+
+.toolkit {
+  @include toolkit;
+  @include addons;
+}

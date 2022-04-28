@@ -1,0 +1,86 @@
+
+$v-menu-button : #3b3b3b;
+$v-menu-background : rgba(160,162,166, 0.7);
+$v-menu-hline : #a0a2a6;
+$v-menu-panel-toolbar-seperator : #a0a2a6;
+$v-menu-panel-toolbar : #3b3b3b;
+$v-menu-button-label : #3b3b3b;
+
+$v-login-information-color : #000000;
+$v-login-information-background : #ffffff;
+$v-login-background-image: "webframe/background/login_background.jpg";
+$v-home-background-image: "webframe/background/login_background.jpg";
+
+$v-header-background : "webframe/header_background.png";
+$v-header-south-background : "webframe/header_south_background.png";
+$v-menu-background-img : "webframe/menu-background.png";
+
+$v-background-color: #ededed;
+$v-focus-color: #848a81;
+$v-app-background-color: #ffffff;
+
+
+@import "../toolkit/variables_facebook";
+@import "../toolkit/toolkit";
+@import "../toolkit/shame";
+
+//$v-unit-size: 14px;
+$v-layout-margin-top: 4px;
+$v-layout-margin-bottom: 4px;
+$v-font-size: 12px;
+
+
+$primary-panel-color: #6c6e70;
+$secondary-panel-color: #c21f30;
+
+$v-loading-indicator-bar-height: ceil($v-unit-size/2) !default;
+$v-app-loading-text: "Snel";
+
+$login-info-width: 350px !default;
+$login-info-opacity: 0.7 !default;
+$login-background-color: $editor-background-color !default;
+
+
+@font-face {
+  font-family: 'Vaadin-Icons';
+  src: url('fonts/Vaadin-Icons.eot');
+  src: url('fonts/Vaadin-Icons.eot?#iefix') format('embedded-opentype'),
+  url('fonts/Vaadin-Icons.woff') format('woff'),
+  url('fonts/Vaadin-Icons.ttf') format('truetype'),
+  url('fonts/Vaadin-Icons.svg#icomoon') format('svg');
+}
+.Vaadin-Icons {
+  font-family: 'Vaadin-Icons';
+}
+
+@mixin snel {
+
+  @include valo;
+  @include toolkit;
+
+
+
+  .v-textfield-uppercase {
+    text-transform: uppercase;
+  }
+
+  .v-textarea-uppercase {
+    text-transform: uppercase;
+  }
+
+  .bold_black_label {
+    font-weight: bold;
+    color: black;
+  }
+
+
+  .caption-width-300 {
+    .v-caption {
+      min-width: 150px;
+    }
+  }
+
+
+
+}
+

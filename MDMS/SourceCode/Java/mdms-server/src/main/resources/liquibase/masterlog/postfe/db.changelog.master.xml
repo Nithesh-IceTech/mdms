@@ -1,0 +1,13 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+	<include file="liquibase/changelog/db.changelog.generateChangeLog.xml"/>
+	<include file="liquibase/changelog/db.changelog.IFS-669-01.xml"/>
+	<include file="liquibase/changelog/db.changelog.IFS-675-02.xml"/>
+	<include file="liquibase/changelog/db.changelog.IFS-1131-01.xml"/>
+	<include file="liquibase/changelog/db.changelog.IFS-1544-01.xml"/>
+	<include file="liquibase/changelog/db.changelog.IFS-1544-02.xml"/>
+	<include file="liquibase/changelog/db.changelog.IED-2397-01.xml"/>
+	<include file="liquibase/changelog/db.changelog.IED-4896-01.xml"/>
+	<include file="liquibase/changelog/db.changelog.IED-4896-02.xml"/>
+
+</databaseChangeLog>

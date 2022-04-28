@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+
+    <changeSet author="arnoc" id="IED-4196-02" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="DEPLOY_LOG"/>
+            </not>
+        </preConditions>
+        <createTable catalogName="" schemaName="" tableName="DEPLOY_LOG">
+            <column name="DEPLOY_LOG_ID" type="VARCHAR(50)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_DEPLOY_LOG_ID" unique="true" uniqueConstraintName="UQ_DEPLOY_LOG_ID"/>
+            </column>
+            <column name="CREATE_TIME" type="TIMESTAMP(6)"/>
+            <column name="START_TIME" type="TIMESTAMP(6)"/>
+            <column name="COMPLETE_TIME" type="TIMESTAMP(6)"/>
+            <column name="DURATION" type="NUMERIC(20)"/>
+            <column name="STATUS" type="NUMERIC(5)"/>
+            <column name="DRIVER" type="VARCHAR(200)"/>
+            <column name="URL" type="VARCHAR(500)"/>
+            <column name="USERNAME" type="VARCHAR(200)"/>
+            <column name="PASSWORD" type="VARCHAR(200)"/>
+            <column name="ROLE_NAME" type="VARCHAR(250)"/>
+            <column name="OWNER" type="VARCHAR(250)"/>
+            <column name="ERROR" type="TEXT"/>
+            <column name="SQL" type="TEXT"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,8 @@
+  sum( sqrt( 2.0*power( TOTAL_KWHP_DIFF / _SCALE_ ,2.0) + 2.0*power( TOTAL_KVARN_DIFF / _SCALE_ ,2.0) ) ) as TOTAL_MAX_DEMAND_PO_KVA_TOTAL,
+  avg( sqrt( 2.0*power( TOTAL_KWHP_DIFF / _SCALE_ ,2.0) + 2.0*power( TOTAL_KVARN_DIFF / _SCALE_ ,2.0) ) ) as TOTAL_MAX_DEMAND_PO_KVA_AVG,
+  count( sqrt( 2.0*power( TOTAL_KWHP_DIFF / _SCALE_ ,2.0) + 2.0*power( TOTAL_KVARN_DIFF / _SCALE_ ,2.0) ) ) as TOTAL_MAX_DEMAND_PO_KVA_COUNT,
+  min( sqrt( 2.0*power( TOTAL_KWHP_DIFF / _SCALE_ ,2.0) + 2.0*power( TOTAL_KVARN_DIFF / _SCALE_ ,2.0) ) ) as TOTAL_MAX_DEMAND_PO_KVA_MIN,
+  max( sqrt( 2.0*power( TOTAL_KWHP_DIFF / _SCALE_ ,2.0) + 2.0*power( TOTAL_KVARN_DIFF / _SCALE_ ,2.0) ) ) as TOTAL_MAX_DEMAND_PO_KVA_MAX,
+  max( sqrt( 2.0*power( TOTAL_KWHP_DIFF / _SCALE_ ,2.0) + 2.0*power( TOTAL_KVARN_DIFF / _SCALE_ ,2.0) ) ) as TOTAL_MAX_DEMAND_PO_KVA_MAX_VL,
+  min(TOTAL_KWHP_MIN_DT) as TOTAL_MAX_DEMAND_PO_KVA_MIN_DT,
+  max(TOTAL_KWHP_MAX_DT) as TOTAL_MAX_DEMAND_PO_KVA_MAX_DT

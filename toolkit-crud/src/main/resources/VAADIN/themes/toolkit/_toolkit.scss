@@ -1,0 +1,559 @@
+
+// declared variables
+/*
+    $v-focus-color
+
+    menu
+      $v-menu-button - #3a604b
+      $v-menu-background - rgba(54, 92, 70, 0.7)
+      $v-menu-hline - #597c67
+      $v-menu-panel-toolbar-seperator #acd4b8
+      $v-menu-panel-toolbar #288d44
+      $v-menu-button-label #365c46
+      $v-login-information-color - selection color
+      $v-header-background : "webframe/header_background.png"
+      $v-header-south-background : "webframe/header_south_background.png"
+      $v-menu-background-img : "webframe/menu-background.png"
+
+ */
+
+//$v-login-information-color: $v-selection-color !default;
+
+@mixin toolkit {
+
+  // Insert your own theme rules here
+  .leftAligned {
+    text-align: left;
+  }
+
+  .rightAligned {
+    text-align: right;
+  }
+
+  .centerAligned {
+    text-align: center;
+  }
+
+
+  .login-bg {
+    background-image: url($v-home-background-image);
+    background-size: 100% auto;
+  }
+
+  .webframe {
+    .header {
+      //padding-left: 45px;
+      .top {
+        padding-left: 45px;
+        background-image: url($v-header-background);
+        background-size: 100% 90px;
+        background-repeat: no-repeat;
+      }
+      .bottom {
+        height:52px;
+        width: 100%;
+        padding-left: 45px;
+        background-image: url($v-header-south-background);
+        background-size: 100% 52px;
+        background-repeat: no-repeat;
+        .left {
+          top: 5px;
+          position: relative;
+          left: 0px;
+        }
+        .right {
+          top: 95px;
+          position: absolute;
+          right: 0px;
+        }
+        .v-button {
+          color: $v-menu-button;
+        }
+      }
+
+    }
+    .menu {
+      &[width-range="0-1024px"] {
+        font-size: 20%;
+      }
+
+      background-size: cover;
+      background-image: url($v-menu-background-img);
+      .lens {
+        background-size: cover;
+        background-color: $v-menu-background;
+        .v-label h1 {
+          margin-left: 20px;
+          margin-right: 20px;
+          color: white;
+          font-family: verdana;
+
+          font-size: 100%;
+
+        }
+        .v-label p {
+          color: white;
+          font-family: verdana;
+          font-size: 50%;
+          margin-left: 20px;
+          margin-right: 20px;
+
+
+        }
+        .hline {
+          border-style: none;
+          border-bottom: solid $v-menu-hline;
+          border-width: 2px;
+          width: 100%;
+        }
+
+        .v-button {
+          color: white;
+          .menu-btn-padding {
+            padding-left: 20px;
+          }
+        }
+        .selected {
+          background-color: rgba(0, 0, 0, 0.3);
+        }
+      }
+    }
+    .main {
+      .panel-toolbar {
+        .seperator {
+          background-color: $v-menu-panel-toolbar-seperator;
+          margin-left: 2px;
+          margin-right: 2px;
+          margin-top: 2px;
+          margin-bottom: 2px;
+        }
+      }
+
+
+      .toolbar-seperator-style {
+        border-style: none;
+        border-left: solid $v-menu-panel-toolbar;
+        border-right: solid $v-menu-panel-toolbar;
+        background-color: $v-menu-panel-toolbar;
+        border-width: 2px;
+        height: 100%;
+        width: 4px;
+      }
+
+      margin-left: 5px;
+      .v-button {
+        .v-label {
+          color: $v-menu-button-label;
+        }
+      }
+      .v-tabsheet-content {
+        background-color: #eeeeec;
+      }
+      .v-tabsheet-tabitemcell {
+        margin-right: 2px;
+      }
+      .v-tabsheet-tabitem {
+        color: white;
+        background-color: $v-menu-button-label;
+        .v-captiontext {
+          color: white;
+          margin-right: 10px;
+        }
+      }
+      .v-tabsheet-tabitem-selected {
+        background-color: $v-focus-color;
+        .v-captiontext {
+          color: white;
+          margin-right: 10px;
+        }
+      }
+      .layout-panel {
+        .v-label {
+          color: $v-focus-color;
+        }
+      }
+      .layout-list {
+        background: $v-focus-color;
+      }
+      .group-panel {
+        background: whitesmoke;
+      }
+      .form-panel {
+        background: whitesmoke;
+        .header {
+          background: $v-focus-color;
+          padding-left: 10px;
+          padding-right: 10px;
+          border-top-right-radius: 5px;
+          border-bottom-right-radius: 5px;
+          color: white;
+          font-weight: bold;
+        }
+
+        .description {
+          font-style: italic;
+        }
+
+        .form {
+          color: black;
+          background: whitesmoke;
+          padding-left: 10px;
+          padding-right: 10px;
+          padding-bottom: 20px;
+
+          .row {
+            padding-top: 10px;
+            padding-left: 10px;
+            padding-right: 20px;
+          }
+        }
+      }
+    }
+  }
+
+  .map {
+    .v-button {
+      color: black;
+    }
+  }
+
+  .toolbar {
+    background: whitesmoke;
+    border-style: outset;
+    border-width: 1px;
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+
+    .v-button {
+      color: black;
+      border-bottom: 1px solid lightgray;
+
+      border-top-right-radius: 0px;
+      border-top-left-radius: 0px;
+      border-bottom-right-radius: 0px;
+      border-bottom-left-radius: 0px;
+    }
+
+  }
+
+  .transparent_50 {
+    opacity: 0.5;
+  }
+
+  .custom-menu-bar {
+    background-color:white;
+    border-right: 1px solid black;
+    height: 100%;
+    margin-top: 10px;
+
+    .top-bar {
+      background-color: lightgray;
+    }
+    .middle-bar {
+      padding-left: 10px;
+      background-color: white;
+    }
+  }
+
+  //Used in the Tx Controller
+  .tx-panel {
+    background: $v-focus-color;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    color: white;
+    font-weight: bold;
+  }
+
+
+  .panel_primary {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    background: #5d5d5d;
+    color: #ffffff;
+    // change button look
+    .v-button-wrap {
+      color: white;
+    }
+  }
+
+  .panel_secondary {
+    background: $secondary-panel-color;
+    color: $primary-panel-color;
+  }
+
+  .hr {
+    background: #000000;
+    height: 1px;
+    width: 100%;
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+
+  .vr {
+    background: #000000;
+    width: 1px;
+    height: 90%;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+
+
+  .accordion_primary {
+
+    .v-accordion {
+      border-width: 0px;
+    }
+    .v-accordion-item-caption .v-caption {
+      padding: 10px 10px;
+      height: 52px;
+      font-size: 150%;
+
+      text-indent: 5px;
+
+      &[width-range="201px-"] {
+        font-size: 100%;
+        height: 12px;
+      }
+    }
+  }
+
+  .accordion_secondary {
+    .v-accordion {
+      border-width: 0px;
+      background: $secondary-panel-color;
+    }
+
+    .v-accordion-item-caption .v-caption {
+      height: 35px;
+      font-size: 90%;
+      //      text-indent: 5px;
+      background: $secondary-panel-color;
+      border-width: 0px;
+    }
+  }
+
+  .navbar_btn {
+    min-width: 200px;
+    text-align: left;
+    padding-left: 5px;
+  }
+
+
+  .menu_button{
+    text-align: left;
+    .v-icon {
+      color: $v-focus-color;
+    }
+
+    &[width-range="0-200px"] {
+      font-size: 90%;
+    }
+
+    &[width-range="201px-"] {
+      font-size: 100%;
+    }
+
+  }
+
+  /* Disable window close animation to fix error field focus bug */
+  .v-window[class*="animate-out"] {
+    -webkit-animation: none;
+    -moz-animation: none;
+    animation: none;
+  }
+
+  .padd_top_5 {
+    padding-top: 5px;
+  }
+
+  .text_align_left {
+    text-align: left;
+
+  }
+
+  .login-screen {
+    background: $editor-background-color;
+
+    @if $login-background-image {
+      background-image: url($v-login-background-image);
+      background-size: cover;
+      background-position: 50% 50%;
+    }
+
+    width: 100%;
+    height: 100%;
+
+    .login-form {
+      @include valo-panel-style;
+      border: none;
+      padding: $v-layout-margin;
+      @include valo-animate-in-fade($duration: 1s);
+    }
+
+    .login-information {
+      display: inline-block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: $login-info-width;
+      height: 100%;
+      background: $v-login-information-background; // For IE8
+      background-color: rgba($v-login-information-background, $login-info-opacity);
+      padding: $v-layout-margin;
+      color: $v-login-information-color;
+      @include animation(valo-animate-in-fade 1s 1s backwards);
+
+      h1 {
+        color: inherit;
+      }
+    }
+
+    .centering-layout {
+      display: inline-block;
+      width: 100%;
+      height: 100%;
+      margin-top: 170px;
+
+      .v-slot {
+        height: 100%;
+      }
+    }
+  }
+
+  .v-textfield-uppercase {
+    text-transform: uppercase;
+  }
+
+  .v-textarea-uppercase {
+    text-transform: uppercase;
+  }
+
+  .bold_black_label {
+    font-weight: bold;
+    color: black;
+  }
+
+
+  .caption-width-300 {
+    .v-caption {
+      min-width: 150px;
+    }
+  }
+  //
+  //.blurred {
+  //  -webkit-filter: blur(5px);
+  //  -moz-filter: blur(5px);
+  //  -o-filter: blur(5px);
+  //  -ms-filter: blur(5px);
+  //}
+
+  .header-frame-button {
+    color: white;
+  }
+
+  .primary_panel {
+    background-color: $primary-panel-color;
+  }
+
+
+  .login-dialog {
+    background: $primary-panel-color;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 15px;
+    padding-top: 10px;
+    color: white;
+
+    .v-caption {
+      color: white;
+    }
+
+    .description {
+      font-style: italic;
+    }
+
+    .header {
+      font-weight: bold;
+      border-bottom-width: 1px;
+      border-bottom-style: solid;
+      border-bottom-color: white;
+      padding-bottom: 5px;
+    }
+
+    .padding_left {
+      padding-left: 20px;
+    }
+
+    .padding_right {
+      padding-right: 20px;
+    }
+
+    .margin_button {
+      margin: 10px;
+      margin-right: 20px;
+    }
+
+  }
+
+  .v-textfield-focus.invalid,
+  .v-textfield.invalid,
+  .v-textarea-focus.invalid,
+  .v-textarea.invalid {
+    color: white;
+  }
+  //
+  //
+  .csvalidator-message {
+    padding: 5px;
+    display: inline-block;
+    background: $primary-panel-color;
+    border-color: black;
+    border-style: solid;
+    border-width: 3px;
+    border-style: solid;
+    border-radius: 5px;
+    vertical-align: bottom;
+    color: white;
+  }
+
+
+
+  // overload the Color of the datefield popup month name
+  .v-datefield-popup td.v-datefield-calendarpanel-month {
+    font-weight: bold;
+    color: black;
+  }
+
+
+  .button-no-focus {
+    $v-focus-style: none;
+  }
+
+  .text-align-left {
+    text-align: left;
+  }
+
+  .v-window-translucent {
+    background-color: rgba(255, 255, 255, 0.6) !important;
+
+    .v-window-contents {
+      background: rgba(255, 255, 255, 0.6);
+    }
+  }
+
+  .v-button-borderless-lg {
+    border: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    background: transparent;
+    color: lightgray;
+  }
+
+
+}

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+
+    <changeSet author="andref" id="IFS-1131-01" failOnError="true" dbms="oracle">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="Device_Entity_Sync_Map"/>
+            </not>
+        </preConditions>
+        <createTable tableName="Device_Entity_Sync_Map">
+            <column name="Device_Entity_Sync_Map_Id" type="NUMBER(15)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="Device_Id" type="VARCHAR2(36)"/>
+            <column name="Entity_Id" type="VARCHAR2(36)"/>
+            <column name="Entity_Class" type="VARCHAR2(250)"/>
+            <column name="Delivered" type="CHAR(1)" />
+            <column name="Delivered_Time" type="TIMESTAMP(6)" />
+            <column name="ON_TABLET" type="CHAR(1)"/>
+            <column name="ERROR_MESSAGE" type="VARCHAR(4000)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="andref" id="IFS-1131-02" failOnError="true" dbms="oracle">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <primaryKeyExists primaryKeyName="Device_Entity_Sync_Map_PK" tableName="Device_Entity_Sync_Map" />
+            </not>
+        </preConditions>
+        <addPrimaryKey columnNames="Device_Entity_Sync_Map_Id" constraintName="Device_Entity_Sync_Map_PK" tableName="Device_Entity_Sync_Map"/>
+    </changeSet>
+
+    <changeSet author="andref (generated)" id="IFS-1131-03" failOnError="true" dbms="oracle">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="DEVICE_ENTITY_SYNC_MAP_ID_SEQ" />
+            </not>
+        </preConditions>
+        <createSequence cacheSize="20" cycle="true" incrementBy="1" maxValue="9999999999" minValue="1" ordered="true" sequenceName="DEVICE_ENTITY_SYNC_MAP_ID_SEQ" startValue="1"/>
+    </changeSet>
+
+    <!-- Create Trigger -->
+    <changeSet author="andref" runOnChange="true" id="IFS-1131-04" failOnError="true" dbms="oracle">
+        <comment>Create trigger DEVICE_ENTITY_SYNC_MAP_TRG</comment>
+        <sql endDelimiter="/">
+            create or replace trigger DEVICE_ENTITY_SYNC_MAP_TRG
+            BEFORE INSERT ON DEVICE_ENTITY_SYNC_MAP FOR EACH ROW
+            BEGIN
+            IF :new.DEVICE_ENTITY_SYNC_MAP_ID is NULL then
+            :new.DEVICE_ENTITY_SYNC_MAP_ID := DEVICE_ENTITY_SYNC_MAP_ID_SEQ.nextval;
+            END IF;
+            END;
+        </sql>
+    </changeSet>
+
+    <changeSet author="andref" id="IFS-1131-05" failOnError="true" dbms="oracle">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="DEVICE_ENTITY_SYNC_MAP" indexName="idx1"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="DEVICE_ENTITY_SYNC_MAP" indexName="idx1">
+            <column name="ENTITY_CLASS"/>
+            <column name="ENTITY_ID"/>
+            <column name="DEVICE_ID"/>
+            <column name="ON_TABLET"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

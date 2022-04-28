@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+
+    <changeSet author="arnoc" id="IED-4209-02" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="DB_TABLE_RECORD"/>
+            </not>
+        </preConditions>
+        <createTable catalogName="" schemaName="" tableName="DB_TABLE_RECORD">
+            <column name="TABLE_NAME" type="VARCHAR(200)"/>
+            <column name="VERSION" type="NUMERIC(10)"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+
+    <changeSet author="jaspervdb" id="IED-2397-01" failOnError="true" dbms="oracle">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="ACTUAL_READING" tableName="PEC_METER_READING"/>
+            </not>
+        </preConditions>
+        <addColumn catalogName=""
+                   schemaName=""
+                   tableName="PEC_METER_READING">
+            <column name="ACTUAL_READING" type="DOUBLE"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="jaspervdb" id="IED-2397-02" failOnError="true" dbms="oracle">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="CREATE_TIME" tableName="METER_READING"/>
+            </not>
+        </preConditions>
+        <addColumn catalogName=""
+                   schemaName=""
+                   tableName="METER_READING">
+            <column name="CREATE_TIME" type="TIMESTAMP(6)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

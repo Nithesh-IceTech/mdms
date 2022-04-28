@@ -1,0 +1,10 @@
+<Order priority='Normal'>
+    <Commands>
+        <RegisterCommand action="read">
+            _REGISTER_
+        </RegisterCommand>
+    </Commands>
+    <Subjects>
+        <Group ref='_GROUP_REF_'/>
+    </Subjects>
+</Order>

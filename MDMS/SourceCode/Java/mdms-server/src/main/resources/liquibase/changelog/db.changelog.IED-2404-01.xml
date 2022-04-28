@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+
+    <changeSet author="jaspervdb" id="IED-2397-01" dbms="oracle">
+        <modifyDataType columnName="DETAIL"
+                        newDataType="clob"
+                        tableName="PEC_METER_READING_LIST_LOG"/>
+    </changeSet>
+
+    <changeSet author="jaspervdb" id="IED-2397-02" dbms="oracle">
+        <modifyDataType columnName="ERROR"
+                        newDataType="clob"
+                        tableName="PEC_METER_READING_LIST_LOG"/>
+    </changeSet>
+
+</databaseChangeLog>

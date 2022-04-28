@@ -1,0 +1,4 @@
+*.iml
+target/
+.idea/
+mdms-web/src/main/webapp/VAADIN/widgetsets/

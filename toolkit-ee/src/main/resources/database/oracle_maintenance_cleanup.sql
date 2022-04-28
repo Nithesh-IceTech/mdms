@@ -1,0 +1,1 @@
+delete from REQUEST_LOG  where exec_time < sysdate - 365
