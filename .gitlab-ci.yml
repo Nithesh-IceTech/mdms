@@ -1,0 +1,408 @@
+---
+default:
+  image: python:latest
+
+stages:
+  - Build
+  - Test
+  - Deploy
+  - Deploy-Release
+
+variables:
+  MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true -Djib.to.auth.username=$GRP_REGISTRY_USER -Djib.to.auth.password=$GRP_REGISTRY_PASSWORD"
+  APP: "pec-${CI_PROJECT_NAME}"
+  RELEASE: "0.0.0.$CI_PIPELINE_ID"
+  #GIT_USER_EMAIL:
+  #GIT_USER_NAME:
+
+cache:
+  paths:
+    - .m2/repository
+    - build_num_file
+  key: "$CI_JOB_NAME"
+
+build:
+  image:
+    name: maven:3.8.4-jdk-11
+    entrypoint: ['']
+  stage: Build
+  needs: []
+  script:
+    - 'echo RELEASE: $RELEASE'
+    - 'rm -f build_num_file'
+    - echo "$RELEASE" >> build_num_file
+    - mvn -B clean
+    - mvn -B versions:set -DnewVersion=${RELEASE}
+    - 'mvn install -P jar -Djib.httpTimeout=600000 -Djib.to.auth.username=$GRP_REGISTRY_USER -Djib.to.auth.password=$GRP_REGISTRY_PASSWORD'
+  artifacts:
+    name: "$CI_JOB_STAGE-$CI_COMMIT_REF_NAME"
+    paths:
+      - target/dependency-check-report.html
+      - 'target/site/jacoco/*'
+  only:
+    - develop
+    - master
+
+docker-build:
+  image:
+    name: docker:latest
+    entrypoint: ['']
+  stage: Build
+  needs: ["build"]
+  services:
+    - docker:dind
+  before_script:
+    - docker info
+    - 'docker login -u $GRP_REGISTRY_USER -p $GRP_REGISTRY_PASSWORD $GRP_REGISTRY'
+  script:
+    - echo "Re-Tagging Build ${RELEASE}..."
+    - |
+      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
+        tag="${RELEASE}_master"
+        echo "Running on default branch '$CI_DEFAULT_BRANCH': tag = 'latest'"
+      else
+        tag="$CI_COMMIT_REF_SLUG"
+        echo "Running on branch '$CI_COMMIT_BRANCH': tag = $tag"
+      fi
+    - docker pull "${GRP_REGISTRY}/$APP:${RELEASE}"
+    - docker tag "${GRP_REGISTRY}/$APP:${RELEASE}" "${GRP_REGISTRY}/$APP:${CI_COMMIT_BRANCH}"
+    - docker push "${GRP_REGISTRY}/$APP:${RELEASE}"
+    - docker push "${GRP_REGISTRY}/$APP:${CI_COMMIT_BRANCH}"
+  dependencies:
+    - build
+  only:
+    - develop
+    - master
+  # rules:
+  #   - if: $CI_COMMIT_BRANCH
+  #     exists:
+  #       - Dockerfile
+
+lint:
+  stage: Test
+  needs: []
+  image:
+    name: registry.gitlab.com/pipeline-components/yamllint:latest
+    entrypoint: ['']
+  script:
+    - yamllint --no-warnings -c conf.yamllint .
+  allow_failure: true
+  only:
+    - develop
+    - master
+
+jacoco:
+  stage: Test
+  needs: ["build"]
+  script: echo "Checking Code Coverage..."
+  allow_failure: true
+  artifacts:
+    paths:
+      - 'target/site/jacoco/*'
+  dependencies:
+    - build
+  only:
+    - develop
+    - master
+
+Vauntability:
+  stage: Test
+  image:
+    name: maven:3.8.4-jdk-11
+    entrypoint: ['']
+  needs: ["build"]
+  dependencies:
+    - build
+  script:
+    - echo "Checking Vauntability..."
+    - mvn -B dependency-check:check
+  artifacts:
+    paths:
+      - target/dependency-check-report.html
+  only:
+    - develop
+    - master
+
+unit_test:
+  stage: Test
+  image:
+    name: maven:3.8.4-jdk-11
+    entrypoint: ['']
+  needs: ["build"]
+  script:
+    - 'mvn surefire-report:report'
+  allow_failure: true
+  artifacts:
+    paths:
+      - target/site/surefire-report.html
+  dependencies:
+    - build
+  only:
+    - develop
+    - master
+
+checkin_poc:
+  image:
+    name: python:latest
+    entrypoint: ['']
+  stage: Deploy
+  needs: ["docker-build"]
+  before_script:
+    - 'echo "Apply to ${CI_COMMIT_BRANCH} environment development release: $RELEASE"'
+    - git clone "http://${GRP_AUTO_USER}:${GRP_AUTO_PASSWORD}@${CI_SERVER_HOST}/devops/automation.git" "${CI_COMMIT_SHORT_SHA}" -b ${CI_COMMIT_BRANCH}
+    - git config --global user.email "${GIT_USER_EMAIL:-$GITLAB_USER_EMAIL}"
+    - git config --global user.name "${GIT_USER_NAME:-$GITLAB_USER_NAME}"
+  script:
+    - mkdir -p "${CI_PROJECT_DIR}/changes"
+    - cd "${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - cp values*.yaml ${CI_PROJECT_DIR}/changes
+    - cd ${CI_PROJECT_DIR}/changes
+    - '${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/argocd/scripts/updateValues.sh'
+    - cp "${CI_PROJECT_DIR}/changes/values-poc.yaml" "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - echo "updateing ${RELEASE} in ice-fcs-flink/values-poc.yaml"
+    - cd "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - git add .
+    - |-
+      # Check if we have modifications to commit
+      CHANGES=$(git status --porcelain | wc -l)
+
+      if [ "$CHANGES" -gt "0" ]; then
+        # Show the status of files that are about to be created, updated or deleted
+        git status
+
+        # Commit all changes
+        git commit -m "${COMMIT_MESSAGE} - from ${CI_PIPELINE_URL} automatic pipeline "
+
+        # Update the repository and make sure to skip the pipeline create for this commit
+        git push origin "${CI_COMMIT_BRANCH}" -o ci.skip
+      fi
+  except:
+    variables:
+      - $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  dependencies:
+    - docker-build
+  only:
+    - develop
+
+checkin_dev:
+  image:
+    name: python:latest
+    entrypoint: ['']
+  stage: Deploy
+  needs: ["docker-build", "unit_test", "jacoco", "lint", "checkin_poc"]
+  before_script:
+    - 'echo "Apply to ${CI_COMMIT_BRANCH} environment development release: $RELEASE"'
+    - git clone "http://${GRP_AUTO_USER}:${GRP_AUTO_PASSWORD}@${CI_SERVER_HOST}/devops/automation.git" "${CI_COMMIT_SHORT_SHA}" -b ${CI_COMMIT_BRANCH}
+    - git config --global user.email "${GIT_USER_EMAIL:-$GITLAB_USER_EMAIL}"
+    - git config --global user.name "${GIT_USER_NAME:-$GITLAB_USER_NAME}"
+  script:
+    - mkdir -p "${CI_PROJECT_DIR}/changes"
+    - cd "${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - cp values*.yaml ${CI_PROJECT_DIR}/changes
+    - cd ${CI_PROJECT_DIR}/changes
+    - ${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/argocd/scripts/updateFile.sh
+    - cp "${CI_PROJECT_DIR}/changes/values.yaml" "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - echo "updateing ${RELEASE} in ice-fcs-flink/values.yaml"
+    - cd "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - git add .
+    - |-
+      # Check if we have modifications to commit
+      CHANGES=$(git status --porcelain | wc -l)
+
+      if [ "$CHANGES" -gt "0" ]; then
+        # Show the status of files that are about to be created, updated or deleted
+        git status
+
+        # Commit all changes
+        git commit -m "${COMMIT_MESSAGE} - from ${CI_PIPELINE_URL} automatic pipeline "
+
+        # Update the repository and make sure to skip the pipeline create for this commit
+        git push origin "${CI_COMMIT_BRANCH}" -o ci.skip
+      fi
+  except:
+    variables:
+      - $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  artifacts:
+    paths:
+      - '${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/argocd/scripts'
+  dependencies:
+    - docker-build
+  only:
+    - develop
+
+# Create a pull request on pipeline success
+create_merge_request:
+  stage: Deploy
+  needs: ["checkin_dev"]
+  when: manual
+  only:
+    - develop
+    - /^feature\/*/
+  script:
+    - 'echo Merge request opened by $GITLAB_USER_NAME '
+    - ${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/argocd/scripts/autoMergeRequest.sh
+  dependencies:
+    - checkin_dev
+
+checkin_tst:
+  image:
+    name: python:latest
+    entrypoint: ['']
+  stage: Deploy
+  needs: ["docker-build"]
+  when: manual
+  before_script:
+    - 'echo "Apply to develop environment production release: $RELEASE"'
+    - git clone "http://${GRP_AUTO_USER}:${GRP_AUTO_PASSWORD}@${CI_SERVER_HOST}/devops/automation.git" "${CI_COMMIT_SHORT_SHA}" -b "develop"
+    - git config --global user.email "${GIT_USER_EMAIL:-$GITLAB_USER_EMAIL}"
+    - git config --global user.name "${GIT_USER_NAME:-$GITLAB_USER_NAME}"
+  script:
+    - mkdir -p "${CI_PROJECT_DIR}/changes"
+    - cd "${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - cp values*.yaml ${CI_PROJECT_DIR}/changes
+    - cd ${CI_PROJECT_DIR}/changes
+    - '${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/argocd/scripts/updateValues.sh'
+    - cp "${CI_PROJECT_DIR}/changes/values-tst.yaml" "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - echo "updateing ${RELEASE} in ice-fcs-flink/values-tst.yaml"
+    - cd "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - git add .
+    - |-
+      # Check if we have modifications to commit
+      CHANGES=$(git status --porcelain | wc -l)
+
+      if [ "$CHANGES" -gt "0" ]; then
+        # Show the status of files that are about to be created, updated or deleted
+        git status
+
+        # Commit all changes
+        git commit -m "${COMMIT_MESSAGE} - from ${CI_PIPELINE_URL} automatic pipeline "
+
+        # Update the repository and make sure to skip the pipeline create for this commit
+        git push origin "develop" -o ci.skip
+      fi
+  dependencies:
+    - docker-build
+  only:
+    - master
+
+checkin_uat:
+  image:
+    name: python:latest
+  needs: ["docker-build"]
+  stage: Deploy
+  when: manual
+  before_script:
+    - 'echo "Apply to develop environment production release: $RELEASE"'
+    - git clone "http://${GRP_AUTO_USER}:${GRP_AUTO_PASSWORD}@${CI_SERVER_HOST}/devops/automation.git" "${CI_COMMIT_SHORT_SHA}" -b "develop"
+    - git config --global user.email "${GIT_USER_EMAIL:-$GITLAB_USER_EMAIL}"
+    - git config --global user.name "${GIT_USER_NAME:-$GITLAB_USER_NAME}"
+  script:
+    - mkdir -p "${CI_PROJECT_DIR}/changes"
+    - cd "${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - cp values*.yaml ${CI_PROJECT_DIR}/changes
+    - cd ${CI_PROJECT_DIR}/changes
+    - '${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/argocd/scripts/updateValues.sh'
+    - cp "${CI_PROJECT_DIR}/changes/values-uat.yaml" "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - echo "updateing ${RELEASE} in ice-fcs-flink/values-uat.yaml"
+    - cd "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - git add .
+    - |-
+      # Check if we have modifications to commit
+      CHANGES=$(git status --porcelain | wc -l)
+
+      if [ "$CHANGES" -gt "0" ]; then
+        # Show the status of files that are about to be created, updated or deleted
+        git status
+
+        # Commit all changes
+        git commit -m "${COMMIT_MESSAGE} - from ${CI_PIPELINE_URL} automatic pipeline "
+
+        # Update the repository and make sure to skip the pipeline create for this commit
+        git push origin "develop" -o ci.skip
+      fi
+  # except:
+  #   variables:
+  #     - $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  dependencies:
+    - docker-build
+  only:
+    - master
+
+docker-final-tag:
+  image:
+    name: docker:latest
+    entrypoint: ['']
+  stage: Deploy-Release
+  needs: ["checkin_uat"]
+  services:
+    - docker:dind
+  before_script:
+    - docker info
+    - 'docker login -u $GRP_REGISTRY_USER -p $GRP_REGISTRY_PASSWORD $GRP_REGISTRY'
+  script:
+    - echo "Re-Tagging Build ${RELEASE}..."
+    - |
+      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
+        tag="${RELEASE}_master"
+        echo "Running on default branch '$CI_DEFAULT_BRANCH': tag = 'latest'"
+      else
+        tag="$CI_COMMIT_REF_SLUG"
+        echo "Running on branch '$CI_COMMIT_BRANCH': tag = $tag"
+      fi
+    - docker pull "${GRP_REGISTRY}/$APP:${CI_COMMIT_BRANCH}" || true
+    - docker tag "${GRP_REGISTRY}/$APP:${RELEASE}" "${GRP_REGISTRY}/$APP:${RELEASE}-${CI_COMMIT_BRANCH}"
+    - docker tag "${GRP_REGISTRY}/$APP:${RELEASE}" "${GRP_REGISTRY}/$APP:${CI_COMMIT_BRANCH}"
+    - docker push "${GRP_REGISTRY}/$APP:${RELEASE}-${CI_COMMIT_BRANCH}"
+    - docker push "${GRP_REGISTRY}/$APP:${CI_COMMIT_BRANCH}"
+  dependencies:
+    - checkin_uat
+  only:
+    - master
+
+checkin_prd:
+  image:
+    name: python:latest
+    entrypoint: ['']
+  stage: Deploy-Release
+  needs: ["checkin_uat", "docker-final-tag"]
+  when: manual
+  before_script:
+    - 'echo "Apply to develop environment production release: $RELEASE"'
+    - git clone "http://${GRP_AUTO_USER}:${GRP_AUTO_PASSWORD}@${CI_SERVER_HOST}/devops/automation.git" "${CI_COMMIT_SHORT_SHA}" -b "develop"
+    - git config --global user.email "${GIT_USER_EMAIL:-$GITLAB_USER_EMAIL}"
+    - git config --global user.name "${GIT_USER_NAME:-$GITLAB_USER_NAME}"
+  script:
+    - mkdir -p "${CI_PROJECT_DIR}/changes"
+    - cd "${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - cp values*.yaml ${CI_PROJECT_DIR}/changes
+    - cd ${CI_PROJECT_DIR}/changes
+    - '${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/argocd/scripts/updateValues.sh'
+    - cp "${CI_PROJECT_DIR}/changes/values-prd.yaml" "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - echo "updateing ${RELEASE} in ice-fcs-flink/values-prd.yaml"
+    - cd "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - git add .
+    - |-
+      # Check if we have modifications to commit
+      CHANGES=$(git status --porcelain | wc -l)
+
+      if [ "$CHANGES" -gt "0" ]; then
+        # Show the status of files that are about to be created, updated or deleted
+        git status
+
+        # Commit all changes
+        git commit -m "${COMMIT_MESSAGE} - from ${CI_PIPELINE_URL} automatic pipeline "
+
+        # Update the repository and make sure to skip the pipeline create for this commit
+        git push origin "develop" -o ci.skip
+      fi
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/changes
+  only:
+    - master
+  dependencies:
+    - docker-final-tag
+  # only:
+  #   variables:
+  #     - $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

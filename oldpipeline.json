@@ -1,0 +1,695 @@
+pipeline {
+    options {
+      buildDiscarder(logRotator(numToKeepStr: '5', artifactNumToKeepStr: '5'))
+      disableConcurrentBuilds()
+    }
+    agent any
+      tools {
+          maven 'Maven_3.8.1'
+          jdk 'jdkzulu_11.0.12'
+    }
+  
+    parameters {
+      string(name: "RELEASE", description: "Version number", defaultValue: "1.0.0")
+      choice(name: 'BRANCH', choices: ['', 'master', 'develop', 'release'], description: 'Select the branch to BUILD: develop=BUILD from DEVELOP then DEPLOY to DEV -- release=MERGE from DEVELOP to RELEASE then BUILD and DEPLOY to INT -- master=MERGE from RELEASE to MASTER then BUILD and DEPLOY to MAS')
+      choice(name: 'PROFILE', choices: ['dev', 'int', 'mas'], description: 'Select a PROFILE to build')
+      //booleanParam(name: 'PEC',defaultValue: false, description: 'TAG and ready for deployment to local DEV and TST')
+      booleanParam(name: 'PEC_DEV', defaultValue: false, description: 'Deploy Image to dev.spsi.co.za/MDMS/UI and WAR to zayvap04.spsi.co.za:8081/MDMS/UI')
+      booleanParam(name: 'PEC_TST', defaultValue: false, description: 'Deploy Image to tst.spsi.co.za/MDMS/UI and WAR to zayvap04.spsi.co.za:8083/MDMS/UI')
+      booleanParam(name: 'PG_DEV', defaultValue: false, description: 'Deploy WAR to zayvap13.spsi.co.za:8081/MDMS/UI')
+      booleanParam(name: 'PG_TST', defaultValue: false, description: 'Deploy WAR to zayvap13.spsi.co.za:8083/MDMS/UI')
+      booleanParam(name: 'HOTFIX',defaultValue: false, description: 'Select if MERGING is NOT required.')
+      booleanParam(name: 'SKIPTEST', defaultValue: false,  description: 'If selected must NOT perform MAVEN testing')
+    }
+  
+    // RB - WORK IN PROGRESS:
+    // Global Variables for all stages
+    environment { 
+      APP = "MDMS" // can be removed when option is added to above choice parameter
+      // app=params.APP.toLowerCase() // See APP in parameters
+      app_lower = APP.toLowerCase()
+      //withEnv(['APP=ENGINE']) {
+      //  ProjectApp= "ENGINE"
+      //  ProjectAppSrc = "ENGINE"
+      //else
+      //  ProjectApp = "${env.APP}"
+      //}
+      ProjectApp = "MDMS"
+      ProjectAppSrc = "PEC"
+      WORKSPACE = "/home/jenkins/agent/workspace/${APP}"
+      MAVEN_LOCAL_REPO = "$WORKSPACE/maven_repo" //OPS-5405
+      // Not working:
+      // ProjectApp= "${env.APP == 'ENGINE' ? ENGINE}"
+      // ProjectAppSrc = "${env.APP == 'ENGINE' ? ICE}"
+      // Examples from google:
+      // DEPLOY_ENV = "${env.BRANCH_NAME == 'master' ? env.MASTER_DEPLOY_ENV : env.RELEASE_DEPLOY_ENV}"
+      // CONFIG_ENV = "${env.BRANCH_NAME == 'master' ? 'MASTER' : 'RELEASE'}"
+    }
+  
+    stages {
+    //  stage('Test Parameters')
+    // {
+    //     steps
+    //     {
+    //         script
+    //         {
+    //             if (params.PROFILE == '') {
+    //                 currentBuild.result = 'ABORTED'
+    //                 error('Parameter PROFILE is mandatory')
+    //             }
+    //         }
+    //     }
+    // } 
+  
+      stage('Environment Variables') 
+      {
+        steps 
+        {
+          sh '''
+            env | grep -e PATH -e JAVA_HOME
+            ${JAVA_HOME}/bin/java -version
+            echo " "
+          '''
+        }
+      }
+  
+      stage ('Checkout SourceCode') {
+        when {
+            expression { params.BRANCH == 'develop' ||
+                         params.BRANCH == 'release' ||
+                         params.BRANCH == 'master' }
+          }
+          parallel{
+            stage('MDMS'){
+              steps{
+                checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'MDMS']], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'hudson', url: 'http://cfg02.spsi.co.za/PEC/MDMS.git']]])
+              }
+            }
+            stage('TOOLKIT-DB'){
+              steps{
+                checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'MDMS_Core/SourceCode/Java/toolkit-db']], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'hudson', url: 'http://cfg02.spsi.co.za/Core/toolkit-db.git']]])
+              }
+            }
+            stage('TOOLKIT'){
+              steps{
+                checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'MDMS_Core/SourceCode/Java/toolkit']], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'hudson', url: 'http://cfg02.spsi.co.za/Core/toolkit.git']]])
+              }
+            }
+            stage('TOOLKIT-EE'){
+              steps{
+                checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'MDMS_Core/SourceCode/Java/toolkit-ee']], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'hudson', url: 'http://cfg02.spsi.co.za/Core/toolkit-ee.git']]])
+              }
+            }
+            stage('TOOLKIT-CRUD'){
+              steps{
+                checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'MDMS_Core/SourceCode/Java/toolkit-crud']], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'hudson', url: 'http://cfg02.spsi.co.za/Core/toolkit-crud.git']]])
+              }
+            }
+            stage('UAA-UTIL-EE'){
+              steps{
+                checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'MDMS_Core/SourceCode/Java/ua-util-ee']], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'hudson', url: 'http://cfg02.spsi.co.za/UAA/UAA-UTIL-EE.git']]])
+              }
+            }
+            stage('TOOLKIT-LOCALE'){
+              steps{
+                checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'MDMS_Core/SourceCode/Java/toolkit-locale']], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'hudson', url: 'http://cfg02.spsi.co.za/Core/toolkit-locale.git']]])
+              }
+            }
+            stage('UAA-UTIL'){
+              steps{
+                checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'MDMS_Core/SourceCode/Java/ua-util']], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'hudson', url: 'http://cfg02.spsi.co.za/UAA/UAA-UTIL.git']]])
+              }
+            }
+            stage('CANVAS'){
+              steps{
+                checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'MDMS_Core/SourceCode/Java/canvas']], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'hudson', url: 'http://cfg02.spsi.co.za/Core/canvas.git']]])
+              }
+            }
+            stage('ICE-LOOKUP'){
+              steps{
+                checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'MDMS_Core/SourceCode/Java/ice-lookup']], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'hudson', url: 'http://cfg02.spsi.co.za/Core/ice-lookup.git']]])
+              }
+            }
+            stage('VAADIN-COMPONENTS'){
+              steps{
+                checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'MDMS_Core/SourceCode/Java/vaadin-components']], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'hudson', url: 'http://cfg02.spsi.co.za/Core/vaadin-components.git']]])
+              }
+            }
+            stage('DM'){
+              steps{
+                checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'MDMS_Core/SourceCode/Java/DM']], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'hudson', url: 'http://cfg02.spsi.co.za/DM/DM.git']]])
+              }
+            }
+            stage('FSS'){
+              steps{
+                checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'MDMS_Core/SourceCode/Java/ICEFSS']], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'hudson', url: 'http://cfg02.spsi.co.za/ICE/FSS.git']]])
+              }
+            }
+            stage('TOOLKIT-DAO'){
+              steps{
+                checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'MDMS_Core/SourceCode/Java/toolkit-dao']], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'hudson', url: 'http://cfg02.spsi.co.za/Core/toolkit-dao.git']]])
+              }
+            }
+            stage('PJTK'){
+              steps{
+                checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'MDMS_Core/SourceCode/Java/pjtk']], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'hudson', url: 'http://cfg02.spsi.co.za/Core/pjtk.git']]])
+              }
+            }
+            stage('SVN-SourceCode'){
+              steps{
+                checkout([$class: 'SubversionSCM', locations: [[credentialsId: 'hudson', depthOption: 'infinity', ignoreExternalsOption: true, local: 'MDMS_Core/Bld', remote: 'http://svn:8081/svn/Bld/trunk/SourceCode']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'MDMS_Core/SourceCode/Java/toolkit-locale']]])
+              }
+            }
+            stage('AUTOMATION'){
+              steps{
+              checkout([$class: 'GitSCM', branches: [[name: 'refs/heads/develop']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'AUTO']], gitTool: 'Default', submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'hudson', url: 'http://cfg02.spsi.co.za/DEVOPS/automation.git']]])
+            }
+                }
+        }
+      }
+      
+      stage ('Build') {
+        when {
+            expression { params.BRANCH == 'develop' ||
+                         params.BRANCH == 'release' ||
+                         params.BRANCH == 'master' }
+          }
+        steps {
+          withCredentials([usernamePassword(credentialsId: 'hudson', passwordVariable: 'gitpass', usernameVariable: 'gituser')]) {
+            sh '''
+            set +vx
+  
+            # Set variables
+            export PATH=${PATH}:/opt/Maven/bin
+            export M2_HOME=/opt/Maven
+            echo ""
+            echo $PATH
+            echo ""
+  
+            # Setup the BRANCH to build from
+            if [ "${BRANCH}" = "release" ] && [ "${HOTFIX}" = "false"  ]; then
+              FROM_BRANCH=develop
+              TO_BRANCH=release
+            elif [ "${BRANCH}" = "release" ] && [ "${HOTFIX}" = "true" ]; then
+              FROM_BRANCH=release
+              TO_BRANCH=release
+            elif [ "${BRANCH}" = "develop" ]; then
+              FROM_BRANCH=develop
+              TO_BRANCH=develop
+            elif [ "${BRANCH}" = "master" ] && [ "${HOTFIX}" = "false" ]; then
+              FROM_BRANCH=release
+              TO_BRANCH=master
+            elif [ "${BRANCH}" = "master" ] && [ "${HOTFIX}" = "true" ]; then
+              FROM_BRANCH=master
+              TO_BRANCH=master
+            fi
+            
+            # General Output Info
+            echo " "
+            echo "Project=${JOB_NAME}"
+            echo "Release=${RELEASE}.${BUILD_NUMBER}"
+            echo "Profile=${PROFILE}"
+            echo "Merge from branch=${FROM_BRANCH}"
+            echo "Build from branch=${TO_BRANCH}"
+            if [ "${BRANCH}" = "develop" ]; then
+              DEPLOYENV=dev
+            elif [ "${BRANCH}" = "release" ]; then
+              DEPLOYENV=int
+            elif [ "${BRANCH}" = "master" ]; then
+              DEPLOYENV=mas
+            fi
+            echo "Deploy To=${DEPLOYENV}"
+            echo "Deploy to KE-NTSA Local=${NTSA}"
+            echo "Deploy to ZW Local=${ZW}"
+            echo "Deploy to KE-NTSA-TST=${KE_NTSA_TST}"
+            echo "Deploy to ZW-TST=${ZW_TST}"
+            echo "HotFix Build=${HOTFIX}"
+            echo "SKIPTEST=${SKIPTEST}"		  
+            echo " "		  
+            
+            Merge(){
+              echo " "
+              echo "------------------- START: Merge of ${2} ----------------------------------"
+              cd  ${WORKSPACE}/$2/
+              echo " "
+              echo "http://${gituser}:${gitpass}@cfg02.spsi.co.za/$1/$2.git" >> /tmp/gitcredfile
+              git config --global credential.helper "store --file=/tmp/gitcredfile"
+              git config --global user.name "Jenkins"
+              git config --global user.email "jenkins@icetech.io"
+              if [ "${HOTFIX}" = "true" ] || [ "${BRANCH}" = "develop" ]; then
+                git checkout origin/${FROM_BRANCH}
+                #git fetch origin
+                git pull origin ${FROM_BRANCH}
+              elif [ "${HOTFIX}" = "false" ] || [ "${BRANCH}" != "master" ]; then
+                git checkout ${FROM_BRANCH}
+                git pull origin ${FROM_BRANCH}
+                git checkout origin/${TO_BRANCH}
+                git pull origin ${TO_BRANCH}
+                git merge --no-ff origin/${FROM_BRANCH} -m 'Auto Merge'
+                git push http://${gituser}:${gitpass}@cfg02.spsi.co.za/$1/$2.git HEAD:${TO_BRANCH}
+                echo "Merged ${FROM_BRANCH} to ${TO_BRANCH}"
+              fi
+              echo ""
+              if [ "${BRANCH}" = "master" ]; then     
+                echo "..TAG ${TO_BRANCH}-${RELEASE}.${BUILD_NUMBER}"
+                git tag -a ${TO_BRANCH}-${RELEASE}.${BUILD_NUMBER}_`date "+%y%m%d%u"` -m 'Tag'
+                git push origin --tags
+              fi
+              echo ""		
+              echo "------------------- END: Merge of $2 ------------------------------------"
+            }
+            
+            Build(){
+              echo " "
+              echo "------------------- START: Build of ${3} ----------------------------------"
+              #pwd #Debug
+              #ls -l #Debug
+              #ls -l ${WORKSPACE}/ #Debug
+              [ ! -d ${WORKSPACE}/${1}/SourceCode/Java/${2} ] && exit 1
+              cd ${WORKSPACE}/${1}/SourceCode/Java/${2}/
+              pwd #Debug
+              ls -l #Debug
+              echo " "
+              echo " "
+              echo "MAVEN Version"
+              mvn -version
+              echo " "
+              echo "JAVA Version"
+              java -version
+              echo " "
+              echo "mvn -B versions:set  -DgroupId=za.co.spsi -DnewVersion=${RELEASE}.${BUILD_NUMBER} "
+                    mvn -B versions:set  -DgroupId=za.co.spsi -DnewVersion=${RELEASE}.${BUILD_NUMBER}
+              echo "mvn -B clean install -Dmaven.repo.local=${MAVEN_LOCAL_REPO} -Dspring.profiles.active=${PROFILE} -DskipTests=${SKIPTEST}"
+                    mvn -B clean install -Dmaven.repo.local=${MAVEN_LOCAL_REPO} -Dspring.profiles.active=${PROFILE} -DskipTests=${SKIPTEST}
+              echo "------------------- END: Build of ${3} ------------------------------------"
+            }
+  
+  echo " #### NOTE - NOT MERGING YET - SKIPPED #### "
+  
+            #echo
+            #cd ${WORKSPACE}/MDMS_Core/SourceCode/Java/
+            pwd
+            echo
+            ls -al
+  
+            #?Merge Core vaadin-components vaadin-components
+            Build MDMS_Core "vaadin-components/vcomponents" vaadin-components
+  
+            #?Merge Core pjtk pjtk
+            Build MDMS_Core pjtk pjtk
+  
+            #?Merge Core toolkit toolkit
+            Build MDMS_Core toolkit toolkit
+  
+            #?Merge Core toolkit-db toolkit-db
+            Build MDMS_Core toolkit-db toolkit-db
+  
+            #?Merge Core toolkit-dao toolkit-dao
+            Build MDMS_Core toolkit-dao toolkit-dao
+  
+            #?Merge Core ua-util ua-util
+            Build MDMS_Core ua-util ua-util
+  
+            #?Merge Core ua-util-ee ua-util-ee ua-util-ee
+            Build MDMS_Core ua-util-ee ua-util-ee
+  
+            #?Merge Core toolkit-ee toolkit-ee
+            Build MDMS_Core toolkit-ee toolkit-ee
+  
+            #?Merge Core toolkit-locale toolkit-locale
+            Build MDMS_Core toolkit-locale toolkit-locale
+  
+            #?Merge Core ice-lookup ice-lookup
+            Build MDMS_Core ice-lookup ice-lookup
+  
+            #?Merge Core canvas canvas
+            Build MDMS_Core canvas canvas
+  
+            #?Merge Core toolkit-crud toolkit-crud
+            Build MDMS_Core toolkit-crud toolkit-crud
+  
+            #?Merge Core ice-fss-dao ice-fss-dao
+            Build MDMS_Core  "ICEFSS/SourceCode/Java/ice-fss-dao" ice-fss-dao
+  
+            #?Merge Core dm-dao dm-dao
+            Build MDMS_Core "DM/SourceCode/Java/dm-components/dm-dao" dm-dao
+  
+            echo " "
+            echo "------------START: BUILD of ${APP} DOCKER IMAGE and WAR--------------------------"	  
+            echo " "
+  
+            cd $WORKSPACE/${APP}/SourceCode/Java
+            if [ "${BRANCH}" = "develop" ]; then
+              export SKIPTEST=true
+              echo "....FORCE NO MAVEN TESTING on ${BRANCH} branch"
+            fi
+            echo "....SKIPTEST = ${SKIPTEST}"
+            ##Keegan: -P jar -Djib.httpTimeout=600000
+            echo "....mvn -B versions:set -DgroupId=za.co.spsi -DnewVersion=${RELEASE}.${BUILD_NUMBER}...."
+                      mvn -B versions:set -DgroupId=za.co.spsi -DnewVersion=${RELEASE}.${BUILD_NUMBER} 
+            echo "....mvn -B clean install -Dmaven.repo.local=${MAVEN_LOCAL_REPO} -P jar -Djib.httpTimeout=600000 -DskipTests=${SKIPTEST} -Dspring.profiles.active=${PROFILE}...."
+                      mvn -B clean install -Dmaven.repo.local=${MAVEN_LOCAL_REPO} -P jar -Djib.httpTimeout=600000 -DskipTests=${SKIPTEST} -Dspring.profiles.active=${PROFILE}
+            echo " "
+            echo "-------------------END: BUILD of ${APP} DOCKER IMAGE and WAR----------------------"
+            echo " "
+            
+            '''
+          }
+        }
+      }
+  
+      stage ('Copy WAR to NAS') {
+        when {
+          expression { params.BRANCH == 'develop' ||
+                         params.BRANCH == 'release' ||
+                         params.BRANCH == 'master' }
+        }
+        steps {
+          withCredentials([usernamePassword(credentialsId: 'hudson', passwordVariable: 'gitpass', usernameVariable: 'gituser')]) {
+            sh '''
+            set +vx
+  
+            apt install zip -y
+            
+            echo "Copy, rename and zip WAR to NAS:"
+            JOB_NAME_LOWER=$(echo "${JOB_NAME}" | awk '{print tolower($0)}')
+            #echo "DEBUG JOB_NAME_LOWER = ${JOB_NAME_LOWER}"
+            #mkdir -p /data/Builds/${JOB_NAME}/ICE-${JOB_NAME}-v${RELEASE}.${BUILD_NUMBER}/Install
+            #echo "cp ${MAVEN_LOCAL_REPO}/za/co/spsi/ice-engine-parent/${RELEASE}.${BUILD_NUMBER}/ice-engine-parent-${RELEASE}.${BUILD_NUMBER}.war /data/Builds/${JOB_NAME}/ICE-${JOB_NAME}-v${RELEASE}.${BUILD_NUMBER}/Install/${JOB_NAME}-v${RELEASE}.${BUILD_NUMBER}.war"
+            #cp ${MAVEN_LOCAL_REPO}/za/co/spsi/ice-engine-parent/${RELEASE}.${BUILD_NUMBER}/ice-engine-parent-${RELEASE}.${BUILD_NUMBER}.war /data/Builds/${JOB_NAME}/ICE-${JOB_NAME}-v${RELEASE}.${BUILD_NUMBER}/Install/${JOB_NAME}-v${RELEASE}.${BUILD_NUMBER}.war
+            echo "DEBUG DEBUG DEBUG - FIND WAR FILE:"
+            find ${MAVEN_LOCAL_REPO} -name *.war -print
+            #cp ${WORKSPACE}/${APP}/SourceCode/Java/mdms-web/target/*.war ${WORKSPACE}/SourceCode/Java/Deploy/${APP}-v${RELEASE}.${BUILD_NUMBER}.war
+            ls -l ${WORKSPACE}/${APP}/SourceCode/Java/mdms-web/target/*.war || true
+            #ls -l /data/Builds/${JOB_NAME}/ICE-${JOB_NAME}-v${RELEASE}.${BUILD_NUMBER}/Install/${JOB_NAME}-v${RELEASE}.${BUILD_NUMBER}.war
+            #cd /data/Builds/${JOB_NAME}
+            #echo "Zipping Directory"
+            #zip -r ICE-${JOB_NAME}-v${RELEASE}.${BUILD_NUMBER}.zip ICE-${JOB_NAME}-v${RELEASE}.${BUILD_NUMBER}
+            '''
+          }
+        }
+      }
+      
+  //AF: Temp Removal; possible performance issue
+  //    stage ('Update CFG-Versions') {
+  //      when {
+  //        expression { params.BRANCH == 'develop' ||
+  //                     params.BRANCH == 'release' ||
+  //                     params.BRANCH == 'master' }
+  //      }
+  //      steps {
+  //        withCredentials([usernamePassword(credentialsId: 'hudson', passwordVariable: 'gitpass', usernameVariable: 'gituser')]) {
+  //          sh '''#!/bin/bash +vx
+  //		    echo " "
+  //            if [ "${BRANCH}" = "develop" ]; then
+  //                export DEPENV=DEV
+  //            elif [ "${BRANCH}" = "release" ]; then
+  //                export DEPENV=INT
+  //            elif [ "${BRANCH}" = "master" ]; then
+  //                export DEPENV=MAS
+  //            fi
+  //		    echo "....Push Version Update to ${DEPENV}-cfg.yml"
+  //		    echo " "
+  //            cd /home/jenkins/agent/workspace/${JOB_NAME}/AUTO
+  //            git config --global credential.helper "store --file=/tmp/gitcredfile"
+  //            git config --global user.name "Jenkins"
+  //            git config --global user.email "jenkins@icetech.io"
+  //			git checkout develop
+  //			git pull origin develop
+  //		    /bin/sed -i '/'"${JOB_NAME}"'/{n;s/.*/   ver: '"${RELEASE}"'.'"${BUILD_NUMBER}"'/}' /home/jenkins/agent/workspace/"${JOB_NAME}"/AUTO/CFG/ICE/"${DEPENV}"-cfg.yml
+  //			git add .
+  //		    git commit -m "Update ${DEPENV}-cfg.yml Version File"
+  //		    git push http://cfg02.spsi.co.za/DEVOPS/automation.git HEAD:develop
+  //		    echo " "
+  //          '''
+  //        }
+  //      }
+  //    }
+  
+      stage('Tag Image DEV') {
+        when {
+          expression { 
+            params.BRANCH == 'develop' 
+          }
+        }
+        steps {
+          withDockerRegistry(credentialsId: 'dockereg', url: 'https://registry.icetech.io')  {
+            sh '''
+              docker pull registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER}
+              docker tag registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER} registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER}-dev
+              docker tag registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER} registry.icetech.io/${app_lower}:dev
+              docker push registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER}-dev
+              docker push registry.icetech.io/${app_lower}:dev
+            '''
+          }
+        }
+      }
+      stage('Tag Image RELEASE') {
+        when {
+          expression {
+            BRANCH == 'release' && PEC == 'true'
+          }
+        }
+        steps {
+          withDockerRegistry(credentialsId: 'dockereg', url: 'https://registry.icetech.io')  {
+            sh '''
+              docker pull registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER}
+              docker tag registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER} registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER}-release
+              docker tag registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER} registry.icetech.io/${app_lower}:release
+              docker push registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER}-release
+              docker push registry.icetech.io/${app_lower}:release
+            '''
+          }
+        }
+      }
+      stage('Tag Image MASTER') {
+        when {
+          expression {
+            BRANCH == 'master' && PEC == 'true'
+          }
+        }
+        steps {
+          withDockerRegistry(credentialsId: 'dockereg', url: 'https://registry.icetech.io')  {
+            sh '''
+              docker pull registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER}
+              docker tag registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER} registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER}-master
+              docker tag registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER} registry.icetech.io/${app_lower}:master
+              docker push registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER}-master
+              docker push registry.icetech.io/${app_lower}:master
+            '''
+          }
+        }
+      }
+      stage ('Deploy in Parallel') {
+        parallel{
+          stage('Deploy Image to PEC-DEV k8s') {
+            when {          
+              expression {
+                BRANCH == 'develop' && PEC_DEV == 'true'
+              }
+            }
+            steps {
+              sh 'kubectl set image deployment/${app_lower} ${app_lower}=registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER}-${BRANCH} -n dev'
+              sh 'scripts/getPodState.sh -a ${app_lower} -n dev'
+            }
+          }
+          stage('Test PEC-DEV k8s') {
+            when {
+              expression {
+                BRANCH == 'develop' && PEC_DEV == 'true'
+              }
+            }
+            steps {
+              echo 'Test PEC-DEV'
+              script {
+                sleep 120
+                PECDEVK8RC = sh(script: 'curl -s -o /dev/null -I -w "%{http_code}"  http://dev.spsi.co.za/${APP}/actuator/info', , returnStdout: true).trim()
+                if (PECDEVK8RC == '200') {
+                  PECDEVK8VER = sh(script: "curl -s http://dev.spsi.co.za/${APP}/actuator/info | jq  --raw-output '.build.name, .build.version'", , returnStdout: true).trim()
+                  echo "Deployed: \n$PECDEVK8VER \nto DEV"
+                } else {
+                  echo "URL returned - HTTP ${PECDEVK8RC}"
+                  currentBuild.result = 'FAILED'
+                  error('Build Failed, http://dev.spsi.co.za/${APP}/UI is not running properly! Please check application logs.')
+                }
+              }
+            }
+          }
+          stage ('Deploy WAR to PEC-DEV VM Ora DB') {
+            when {
+              expression {
+                BRANCH == 'develop' && PEC_DEV == 'true'
+              }
+            }
+            steps {
+              withCredentials([usernamePassword(credentialsId: 'awxcreds', passwordVariable: 'awxpass', usernameVariable: 'awxuser')]) {
+                sh '''
+                  set +vx
+                    echo "Deploy WAR to PEC-DEV VM Ora DB via AWX server:"
+                    curl -k -s --user ${awxuser}:${awxpass} -X POST -H "Content-Type: application/json" \
+                    "http://awx.spsi.co.za/api/v2/job_templates/27/launch/" \
+                    --data '{
+                            "extra_vars": {
+                            "env": "DEV",
+                            "app": "${APP}",
+                            "ver": "'${RELEASE}.${BUILD_NUMBER}'",
+                            "limit": "zayvap04.spsi.co.za"
+                                          }
+                            }'
+                '''
+              }
+            }
+          }
+          stage('Test PEC-DEV VM Ora DB') {
+            when {
+              expression {
+                BRANCH == 'develop' && PEC_DEV == 'true'
+              }
+            }
+            steps {
+              echo 'Test PEC-DEV WAR Ora DB'
+              script {
+                sleep 120
+                PECDEVVMRC = sh(script: 'curl -s -o /dev/null -I -w "%{http_code}"  http://zayvap04.spsi.co.za:8081/${APP}/actuator/info', , returnStdout: true).trim()
+                if (PECDEVVMRC == '200') {
+                  PECDEVVMVER = sh(script: "curl -s http://zayvap04.spsi.co.za:8081/${APP}/actuator/info | jq  --raw-output '.build.version'", , returnStdout: true).trim()
+                  echo "Deployed: \n$PECDEVVMVER \nto PEC-DEV VM"
+                } else {
+                  echo "URL returned - HTTP ${PECDEVVMRC}"
+                  currentBuild.result = 'FAILED'
+                  error('Build Failed, http://zayvap04.spsi.co.za:8081/${APP}/ is not running properly! Please log an OPS ticket to investigate the issue…')
+                }
+              }
+            }
+          }
+          stage ('Deploy WAR to PEC-DEV VM PG DB') {
+            when {
+              expression {
+                BRANCH == 'develop' && PEC_DEV == 'true'
+              }
+            }
+            steps {
+              withCredentials([usernamePassword(credentialsId: 'awxcreds', passwordVariable: 'awxpass', usernameVariable: 'awxuser')]) {
+                sh '''
+                  set +vx
+                    echo "Deploy WAR to PEC-DEV VM PG DB via AWX server:"
+                    curl -k -s --user ${awxuser}:${awxpass} -X POST -H "Content-Type: application/json" \
+                    "http://awx.spsi.co.za/api/v2/job_templates/27/launch/" \
+                    --data '{
+                            "extra_vars": {
+                            "env": "DEV",
+                            "app": "${APP}",
+                            "ver": "'${RELEASE}.${BUILD_NUMBER}'",
+                            "limit": "zayvap13.spsi.co.za"
+                                          }
+                            }'
+                '''
+              }
+            }
+          }
+          stage('Test PEC-DEV VM PG DB') {
+            when {
+              expression {
+                BRANCH == 'develop' && PEC_DEV == 'true'
+              }
+            }
+            steps {
+              echo 'Test PEC-DEV WAR PG DB'
+              script {
+                sleep 120
+                PECDEVVMRC = sh(script: 'curl -s -o /dev/null -I -w "%{http_code}"  http://zayvap13.spsi.co.za:8081/${APP}/actuator/info', , returnStdout: true).trim()
+                if (PECDEVVMRC == '200') {
+                  PECDEVVMVER = sh(script: "curl -s http://zayvap13.spsi.co.za:8081/${APP}/actuator/info | jq  --raw-output '.build.version'", , returnStdout: true).trim()
+                  echo "Deployed: \n$PECDEVVMVER \nto PEC-DEV VM"
+                } else {
+                  echo "URL returned - HTTP ${PECDEVVMRC}"
+                  currentBuild.result = 'FAILED'
+                  error('Build Failed, http://zayvap13.spsi.co.za:8081/${APP}/ is not running properly! Please log an OPS ticket to investigate the issue…')
+                }
+              }
+            }
+          }
+          stage('Deploy Image to PEC-TST k8s') {
+            when {
+              expression {
+                BRANCH == 'master' && PEC_TST== 'true'
+              }
+            }
+            steps {
+              sh 'kubectl set image deployment/${app_lower} ${app_lower}=registry.icetech.io/${app_lower}:${RELEASE}.${BUILD_NUMBER}-${BRANCH} -n tst'
+              sh 'scripts/getPodState.sh -a ${app_lower} -n tst'
+            }
+          }
+          stage('Test PEC-TST k8s') {
+            when {
+              expression {
+                BRANCH == 'master' && PEC_TST == 'true'
+              }
+            }
+            steps {
+              echo 'Test PEC-TST k8s'
+              script {
+                sleep 120
+                PECTSTK8RC = sh(script: 'curl -s -o /dev/null -I -w "%{http_code}"  http://tst.spsi.co.za/${APP}/actuator/info', , returnStdout: true).trim()
+                if (PECTSTK8RC == '200') {
+                  PECDEVK8VER = sh(script: "curl -s http://tst.spsi.co.za/${APP}/actuator/info | jq  --raw-output '.build.name, .build.version'", , returnStdout: true).trim()
+                  echo "Deployed: \n$PECDEVK8VER \nto DEV"
+                } else {
+                  echo "URL returned - HTTP ${PECTSTK8RC}"
+                  currentBuild.result = 'FAILED'
+                  error('Build Failed, http://tst.spsi.co.za/${APP}/UI is not running properly! Please check application logs.')
+                }
+              }
+            }
+          }
+          stage ('Deploy WAR to PEC-TST VM') {
+            when {
+              expression {
+                BRANCH == 'master' && PEC_TST == 'true'
+              }
+            }
+            steps {
+              withCredentials([usernamePassword(credentialsId: 'awxcreds', passwordVariable: 'awxpass', usernameVariable: 'awxuser')]) {
+                sh '''
+                  set +vx
+                    echo "Deploy WAR to PEC-TST VM via AWX server:"
+                    curl -k -s --user ${awxuser}:${awxpass} -X POST -H "Content-Type: application/json" \
+                    "http://awx.spsi.co.za/api/v2/job_templates/27/launch/" \
+                    --data '{
+                            "extra_vars": {
+                            "env": "TST",
+                            "app": "${APP}",
+                            "ver": "'${RELEASE}.${BUILD_NUMBER}'",
+                            "limit": "zayvap04.spsi.co.za"
+                                          }
+                            }'
+                '''
+              }
+            }
+          }
+          stage('Test PEC-TST VM') {
+            when {
+              expression {
+                BRANCH == 'master' && PEC_TST == 'true'
+              }
+            }
+            steps {
+              echo 'Test PEC-TST WAR'
+              script {
+                sleep 120
+                PECTSTSTATUS = sh(script: 'curl -s -o /dev/null -I -w "%{http_code}"  http://zayvap04.spsi.co.za:8083/${APP}/actuator/info', , returnStdout: true).trim()
+                if (PECTSTSTATUS == '200') {
+                  PECTSTVER = sh(script: "curl -s http://zayvap04.spsi.co.za:8083/${APP}/actuator/info | jq  --raw-output '.build.version'", , returnStdout: true).trim()
+                  echo "Deployed: \n$PECTSTVER \nto PEC-TST VM"
+                } else {
+                  echo "URL returned - HTTP ${PECTSTSTATUS}"
+                  currentBuild.result = 'FAILED'
+                  error('Build Failed, http://zayvap04.spsi.co.za:8083/${APP}/ is not running properly! Please log an OPS ticket to investigate the issue…')
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
