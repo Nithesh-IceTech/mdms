@@ -30,6 +30,8 @@ build:
   stage: Build
   needs: []
   script:
+    - cd MDMS/
+    - pwd
     - 'echo RELEASE: $RELEASE'
     - 'rm -f build_num_file'
     - echo "$RELEASE" >> build_num_file
