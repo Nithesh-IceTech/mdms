@@ -147,7 +147,7 @@ checkin_dev:
     name: python:latest
     entrypoint: ['']
   stage: Deploy
-  needs: ["docker-build", "unit_test", "jacoco", "lint", "checkin_poc"]
+  needs: ["docker-build", "unit_test", "jacoco", "lint"]
   before_script:
     - 'echo "Apply to ${CI_COMMIT_BRANCH} environment development release: $RELEASE"'
     - git clone "http://${GRP_AUTO_USER}:${GRP_AUTO_PASSWORD}@${CI_SERVER_HOST}/devops/automation.git" "${CI_COMMIT_SHORT_SHA}" -b ${CI_COMMIT_BRANCH}
