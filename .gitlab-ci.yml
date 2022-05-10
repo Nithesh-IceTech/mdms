@@ -24,7 +24,8 @@ cache:
 
 build:
   image:
-    name: maven:3.8.4-jdk-1.8
+    #name: maven:3.8.4-jdk-11
+    name: maven:3.8.5-jdk-8
     entrypoint: ['']
   stage: Build
   needs: []
@@ -109,7 +110,8 @@ jacoco:
 Vauntability:
   stage: Test
   image:
-    name: maven:3.8.4-jdk-11
+    #name: maven:3.8.4-jdk-11
+    name: maven:3.8.5-jdk-8
     entrypoint: ['']
   needs: ["build"]
   dependencies:
@@ -127,7 +129,8 @@ Vauntability:
 unit_test:
   stage: Test
   image:
-    name: maven:3.8.4-jdk-11
+    #name: maven:3.8.4-jdk-11
+    name: maven:3.8.5-jdk-8
     entrypoint: ['']
   needs: ["build"]
   script:
