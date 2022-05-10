@@ -12,7 +12,7 @@ variables:
   MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
   MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true -Djib.to.auth.username=$GRP_REGISTRY_USER -Djib.to.auth.password=$GRP_REGISTRY_PASSWORD"
   APP: "pec-${CI_PROJECT_NAME}"
-  RELEASE: "0.0.0.$CI_PIPELINE_ID"
+  RELEASE: "2.0.0.$CI_PIPELINE_ID"
   #GIT_USER_EMAIL:
   #GIT_USER_NAME:
 
@@ -24,7 +24,7 @@ cache:
 
 build:
   image:
-    name: maven:3.8.4-jdk-11
+    name: maven:3.8.4-jdk-1.8
     entrypoint: ['']
   stage: Build
   needs: []
@@ -142,49 +142,6 @@ unit_test:
     - develop
     - master
 
-checkin_poc:
-  image:
-    name: python:latest
-    entrypoint: ['']
-  stage: Deploy
-  needs: ["docker-build"]
-  before_script:
-    - 'echo "Apply to ${CI_COMMIT_BRANCH} environment development release: $RELEASE"'
-    - git clone "http://${GRP_AUTO_USER}:${GRP_AUTO_PASSWORD}@${CI_SERVER_HOST}/devops/automation.git" "${CI_COMMIT_SHORT_SHA}" -b ${CI_COMMIT_BRANCH}
-    - git config --global user.email "${GIT_USER_EMAIL:-$GITLAB_USER_EMAIL}"
-    - git config --global user.name "${GIT_USER_NAME:-$GITLAB_USER_NAME}"
-  script:
-    - mkdir -p "${CI_PROJECT_DIR}/changes"
-    - cd "${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
-    - cp values*.yaml ${CI_PROJECT_DIR}/changes
-    - cd ${CI_PROJECT_DIR}/changes
-    - '${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/argocd/scripts/updateValues.sh'
-    - cp "${CI_PROJECT_DIR}/changes/values-poc.yaml" "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
-    - echo "updateing ${RELEASE} in ice-fcs-flink/values-poc.yaml"
-    - cd "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
-    - git add .
-    - |-
-      # Check if we have modifications to commit
-      CHANGES=$(git status --porcelain | wc -l)
-
-      if [ "$CHANGES" -gt "0" ]; then
-        # Show the status of files that are about to be created, updated or deleted
-        git status
-
-        # Commit all changes
-        git commit -m "${COMMIT_MESSAGE} - from ${CI_PIPELINE_URL} automatic pipeline "
-
-        # Update the repository and make sure to skip the pipeline create for this commit
-        git push origin "${CI_COMMIT_BRANCH}" -o ci.skip
-      fi
-  except:
-    variables:
-      - $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-  dependencies:
-    - docker-build
-  only:
-    - develop
-
 checkin_dev:
   image:
     name: python:latest
@@ -198,13 +155,13 @@ checkin_dev:
     - git config --global user.name "${GIT_USER_NAME:-$GITLAB_USER_NAME}"
   script:
     - mkdir -p "${CI_PROJECT_DIR}/changes"
-    - cd "${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - cd "${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-mdms"
     - cp values*.yaml ${CI_PROJECT_DIR}/changes
     - cd ${CI_PROJECT_DIR}/changes
     - ${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/argocd/scripts/updateFile.sh
-    - cp "${CI_PROJECT_DIR}/changes/values.yaml" "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
-    - echo "updateing ${RELEASE} in ice-fcs-flink/values.yaml"
-    - cd "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - cp "${CI_PROJECT_DIR}/changes/values.yaml" "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-mdms"
+    - echo "updateing ${RELEASE} in ice-mdms/values.yaml"
+    - cd "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-mdms"
     - git add .
     - |-
       # Check if we have modifications to commit
@@ -259,13 +216,13 @@ checkin_tst:
     - git config --global user.name "${GIT_USER_NAME:-$GITLAB_USER_NAME}"
   script:
     - mkdir -p "${CI_PROJECT_DIR}/changes"
-    - cd "${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - cd "${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-mdms"
     - cp values*.yaml ${CI_PROJECT_DIR}/changes
     - cd ${CI_PROJECT_DIR}/changes
     - '${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/argocd/scripts/updateValues.sh'
-    - cp "${CI_PROJECT_DIR}/changes/values-tst.yaml" "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
-    - echo "updateing ${RELEASE} in ice-fcs-flink/values-tst.yaml"
-    - cd "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - cp "${CI_PROJECT_DIR}/changes/values-tst.yaml" "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-mdms"
+    - echo "updateing ${RELEASE} in ice-mdms/values-tst.yaml"
+    - cd "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-mdms"
     - git add .
     - |-
       # Check if we have modifications to commit
@@ -299,13 +256,13 @@ checkin_uat:
     - git config --global user.name "${GIT_USER_NAME:-$GITLAB_USER_NAME}"
   script:
     - mkdir -p "${CI_PROJECT_DIR}/changes"
-    - cd "${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - cd "${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-mdms"
     - cp values*.yaml ${CI_PROJECT_DIR}/changes
     - cd ${CI_PROJECT_DIR}/changes
     - '${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/argocd/scripts/updateValues.sh'
-    - cp "${CI_PROJECT_DIR}/changes/values-uat.yaml" "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
-    - echo "updateing ${RELEASE} in ice-fcs-flink/values-uat.yaml"
-    - cd "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - cp "${CI_PROJECT_DIR}/changes/values-uat.yaml" "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-mdms"
+    - echo "updateing ${RELEASE} in ice-mdms/values-uat.yaml"
+    - cd "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-mdms"
     - git add .
     - |-
       # Check if we have modifications to commit
@@ -374,13 +331,13 @@ checkin_prd:
     - git config --global user.name "${GIT_USER_NAME:-$GITLAB_USER_NAME}"
   script:
     - mkdir -p "${CI_PROJECT_DIR}/changes"
-    - cd "${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - cd "${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-mdms"
     - cp values*.yaml ${CI_PROJECT_DIR}/changes
     - cd ${CI_PROJECT_DIR}/changes
     - '${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/argocd/scripts/updateValues.sh'
-    - cp "${CI_PROJECT_DIR}/changes/values-prd.yaml" "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
-    - echo "updateing ${RELEASE} in ice-fcs-flink/values-prd.yaml"
-    - cd "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-fcs-flink"
+    - cp "${CI_PROJECT_DIR}/changes/values-prd.yaml" "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-mdms"
+    - echo "updateing ${RELEASE} in ice-mdms/values-prd.yaml"
+    - cd "${CI_PROJECT_DIR}/${CI_COMMIT_SHORT_SHA}/Generic/k8s/helm-charts/ice-mdms"
     - git add .
     - |-
       # Check if we have modifications to commit
