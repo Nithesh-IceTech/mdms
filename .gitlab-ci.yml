@@ -38,6 +38,7 @@ build:
     #- mvn -B clean
     #- mvn -B versions:set -DnewVersion=${RELEASE}
     #- 'mvn install -P jar -Djib.httpTimeout=600000 -Djib.to.auth.username=$GRP_REGISTRY_USER -Djib.to.auth.password=$GRP_REGISTRY_PASSWORD'
+    - chmod +x build.sh
     - echo "./build.sh"
     - ./build.sh
   artifacts:
