@@ -186,7 +186,7 @@ cd ${WORKSPACE}/
 pwd
 mvn -B clean
 mvn -B versions:set -DnewVersion=${RELEASE}.${BUILD_NUMBER}
-mvn -B install -DskipTests=true -p SourceCode/Java/pom.xml
+mvn -B install -DskipTests=true -f SourceCode/Java/pom.xml
 echo " "
 echo "END dm-dao"
 echo " "
