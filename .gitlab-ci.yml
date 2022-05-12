@@ -30,14 +30,16 @@ build:
   stage: Build
   needs: []
   script:
-    - cd MDMS/
+    #- cd MDMS/
     - pwd
     - 'echo RELEASE: $RELEASE'
     - 'rm -f build_num_file'
     - echo "$RELEASE" >> build_num_file
-    - mvn -B clean
-    - mvn -B versions:set -DnewVersion=${RELEASE}
-    - 'mvn install -P jar -Djib.httpTimeout=600000 -Djib.to.auth.username=$GRP_REGISTRY_USER -Djib.to.auth.password=$GRP_REGISTRY_PASSWORD'
+    #- mvn -B clean
+    #- mvn -B versions:set -DnewVersion=${RELEASE}
+    #- 'mvn install -P jar -Djib.httpTimeout=600000 -Djib.to.auth.username=$GRP_REGISTRY_USER -Djib.to.auth.password=$GRP_REGISTRY_PASSWORD'
+    - echo "./build.sh"
+    - ./build.sh
   artifacts:
     name: "$CI_JOB_STAGE-$CI_COMMIT_REF_NAME"
     paths:
