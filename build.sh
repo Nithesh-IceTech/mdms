@@ -22,7 +22,7 @@ cd ${WORKSPACE}/../vaadin-components/vcomponents
 pwd
 mvn -B clean
 mvn -B versions:set -DnewVersion=${RELEASE}.${BUILD_NUMBER}
-mvn -B install -DskipTests=true
+mvn -B install -s ${WORKSPACE}/settings.xml -DskipTests=true
 
 echo " "
 echo "END vaadin-components"
@@ -33,7 +33,7 @@ cd ${WORKSPACE}/../pjtk/
 pwd
 mvn -B clean
 mvn -B versions:set -DnewVersion=${RELEASE}.${BUILD_NUMBER}
-mvn -B install -DskipTests=true
+mvn -B install -s ${WORKSPACE}/settings.xml -DskipTests=true
 echo " "
 echo "END pjtk"
 
@@ -44,7 +44,7 @@ cd ${WORKSPACE}/../toolkit/
 pwd
 mvn -B clean
 mvn -B versions:set -DnewVersion=${RELEASE}.${BUILD_NUMBER}
-mvn -B install -DskipTests=true
+mvn -B install -s ${WORKSPACE}/settings.xml -DskipTests=true
 echo " "
 echo "END toolkit"
 
@@ -55,7 +55,7 @@ cd ${WORKSPACE}/../toolkit-db
 pwd
 mvn -B clean
 mvn -B versions:set -DnewVersion=${RELEASE}.${BUILD_NUMBER}
-mvn -B install -DskipTests=true
+mvn -B install -s ${WORKSPACE}/settings.xml -DskipTests=true
 echo " "
 echo "END toolkit-db"
 echo " "
@@ -67,7 +67,7 @@ cd ${WORKSPACE}/../toolkit-dao
 pwd
 mvn -B clean
 mvn -B versions:set -DnewVersion=${RELEASE}.${BUILD_NUMBER}
-mvn -B install -DskipTests=true
+mvn -B install -s ${WORKSPACE}/settings.xml -DskipTests=true
 echo " "
 echo "END toolkit-dao"
 echo " "
@@ -79,7 +79,7 @@ cd ${WORKSPACE}/../ua-util
 pwd
 mvn -B clean
 mvn -B versions:set -DnewVersion=${RELEASE}.${BUILD_NUMBER}
-mvn -B install -DskipTests=true
+mvn -B install -s ${WORKSPACE}/settings.xml -DskipTests=true
 echo " "
 echo "END ua-util"
 echo " "
@@ -91,7 +91,7 @@ cd ${WORKSPACE}/../ua-util-ee
 pwd
 mvn -B clean
 mvn -B versions:set -DnewVersion=${RELEASE}.${BUILD_NUMBER}
-mvn -B install -DskipTests=true
+mvn -B install -s ${WORKSPACE}/settings.xml -DskipTests=true
 echo " "
 echo "END ua-util-ee"
 echo " "
@@ -103,7 +103,7 @@ cd ${WORKSPACE}/../toolkit-ee
 pwd
 mvn -B clean
 mvn -B versions:set -DnewVersion=${RELEASE}.${BUILD_NUMBER}
-mvn -B install -DskipTests=true
+mvn -B install -s ${WORKSPACE}/settings.xml -DskipTests=true
 echo " "
 echo "END toolkit-ee"
 echo " "
@@ -115,7 +115,7 @@ cd ${WORKSPACE}/../toolkit-locale
 pwd
 mvn -B clean
 mvn -B versions:set -DnewVersion=${RELEASE}.${BUILD_NUMBER}
-mvn -B install -DskipTests=true
+mvn -B install -s ${WORKSPACE}/settings.xml -DskipTests=true
 echo " "
 echo "END toolkit-locale"
 echo " "
@@ -127,7 +127,7 @@ cd ${WORKSPACE}/../ice-lookup
 pwd
 mvn -B clean
 mvn -B versions:set -DnewVersion=${RELEASE}.${BUILD_NUMBER}
-mvn -B install -DskipTests=true
+mvn -B install -s ${WORKSPACE}/settings.xml -DskipTests=true
 echo " "
 echo "END ice-lookup"
 echo " "
@@ -138,7 +138,7 @@ cd ${WORKSPACE}/../canvas
 pwd
 mvn -B clean
 mvn -B versions:set -DnewVersion=${RELEASE}.${BUILD_NUMBER}
-mvn -B install -DskipTests=true
+mvn -B install -s ${WORKSPACE}/settings.xml -DskipTests=true
 echo " "
 echo "END canvas"
 echo " "
@@ -150,7 +150,7 @@ cd ${WORKSPACE}/../toolkit-crud
 pwd
 mvn -B clean
 mvn -B versions:set -DnewVersion=${RELEASE}.${BUILD_NUMBER}
-mvn -B install -DskipTests=true
+mvn -B install -s ${WORKSPACE}/settings.xml -DskipTests=true
 echo " "
 echo "END toolkit-crud"
 echo " "
@@ -162,7 +162,7 @@ cd ${WORKSPACE}/SourceCode/Java/ICEFSS/SourceCode/Java/ice-fss-dao
 pwd
 mvn -B clean
 mvn -B versions:set -DnewVersion=${RELEASE}.${BUILD_NUMBER}
-mvn -B install -DskipTests=true
+mvn -B install -s ${WORKSPACE}/settings.xml -DskipTests=true
 echo " "
 echo "END ice-fss-dao"
 echo " "
@@ -174,7 +174,7 @@ cd ${WORKSPACE}/SourceCode/Java/DM/SourceCode/Java/dm-components/dm-dao
 pwd
 mvn -B clean
 mvn -B versions:set -DnewVersion=${RELEASE}.${BUILD_NUMBER}
-mvn -B install -DskipTests=true
+mvn -B install -s ${WORKSPACE}/settings.xml -DskipTests=true
 echo " "
 echo "END dm-dao"
 echo " "
@@ -186,7 +186,7 @@ cd ${WORKSPACE}/
 pwd
 mvn -B clean
 mvn -B versions:set -DnewVersion=${RELEASE}.${BUILD_NUMBER}
-mvn -B install -DskipTests=true -f SourceCode/Java/pom.xml
+mvn -B install -s ${WORKSPACE}/settings.xml -DskipTests=true -f SourceCode/Java/pom.xml
 echo " "
 echo "END dm-dao"
 echo " "
