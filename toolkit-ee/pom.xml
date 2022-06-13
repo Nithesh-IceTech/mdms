@@ -52,11 +52,6 @@
             <artifactId>toolkit-db</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>za.co.spsi</groupId>
-            <artifactId>spsi-auth-util-ee</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
     <dependencyManagement>
