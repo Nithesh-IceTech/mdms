@@ -130,12 +130,6 @@
         </dependency>
 
         <dependency>
-            <groupId>za.co.spsi</groupId>
-            <artifactId>spsi-auth-util-ee</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.vaadin.addon</groupId>
             <artifactId>vaadin-charts</artifactId>
             <version>3.1.0</version>

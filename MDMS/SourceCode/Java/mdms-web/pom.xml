@@ -18,12 +18,6 @@
     </properties>
 
     <dependencies>
-
-        <dependency>
-            <groupId>za.co.spsi</groupId>
-            <artifactId>spsi-auth-util-ee</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-web-api</artifactId>
